@@ -1,26 +1,105 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import axios from 'axios';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand('vscode-openai-helper.askOpenAI', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return;
+        }
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "promptlycode" is now active!');
+        // Get the selected text
+        const selection = editor.selection;
+        const selectedCode = editor.document.getText(selection);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('promptlycode.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from PromptlyCode!');
-	});
+        if (!selectedCode) {
+            vscode.window.showErrorMessage('Please select some code first');
+            return;
+        }
 
-	context.subscriptions.push(disposable);
+        // Get the API key from settings
+        const config = vscode.workspace.getConfiguration('openaiHelper');
+        const apiKey = config.get<string>('apiKey');
+
+        if (!apiKey) {
+            vscode.window.showErrorMessage('Please set your OpenAI API key in settings');
+            return;
+        }
+
+        // Show input box for the question
+        const question = await vscode.window.showInputBox({
+            placeHolder: 'What would you like to ask about this code?',
+            prompt: 'Enter your question',
+        });
+
+        if (!question) {
+            return;
+        }
+
+        // Show progress indicator
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Asking OpenAI...",
+            cancellable: false
+        }, async (progress) => {
+            try {
+                const response = await askOpenAI(apiKey, question, selectedCode);
+                
+                // Show response in a new editor
+                const document = await vscode.workspace.openTextDocument({
+                    content: response,
+                    language: 'markdown'
+                });
+                
+                await vscode.window.showTextDocument(document, {
+                    viewColumn: vscode.ViewColumn.Beside
+                });
+            } catch (error) {
+                if (error instanceof Error) {
+                    vscode.window.showErrorMessage(`Error: ${error.message}`);
+                } else {
+                    vscode.window.showErrorMessage('An unknown error occurred');
+                }
+            }
+        });
+    });
+
+    context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
+async function askOpenAI(apiKey: string, question: string, code: string): Promise<string> {
+    try {
+        const response = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-4',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a helpful assistant that answers questions about code.'
+                    },
+                    {
+                        role: 'user',
+                        content: `Question: ${question}\n\nCode:\n${code}`
+                    }
+                ],
+                temperature: 0.7
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        return response.data.choices[0].message.content;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            throw new Error(`OpenAI API error: ${error.response.data.error.message}`);
+        }
+        throw error;
+    }
+}
+
 export function deactivate() {}
