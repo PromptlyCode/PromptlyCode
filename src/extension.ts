@@ -107,9 +107,9 @@ async function promptForApiKey(): Promise<string | undefined> {
 async function validateApiKey(apiKey: string): Promise<boolean> {
     try {
         await axios.post(
-            'https://api.openai.com/v1/chat/completions',
+            'https://openrouter.ai/api/v1/chat/completions',
             {
-                model: 'gpt-4',
+                model: 'anthropic/claude-3.5-sonnet',
                 messages: [
                     {
                         role: 'user',
