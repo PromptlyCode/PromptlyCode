@@ -8,6 +8,8 @@
 - [x] Cmd+k code question modification
 - [ ] Tab automatically complete code and predict code
 - [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction
+- [ ] Support voice wake-up interactive programming
+- [ ] Support rapid prototyping verification POC AI programming
 
 ## Develop
 
