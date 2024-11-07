@@ -14,13 +14,19 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-openai-helper.askOpenAI",
+        "command": "promptly-code.askOpenAI",
         "title": "Ask OpenAI about selected code"
       }
     ],
     "keybindings": [
       {
-        "command": "vscode-openai-helper.askOpenAI",
+          "command": "promptly-code.askOpenAI",
+          "key": "ctrl+k",
+          "linux": "ctrl+k",
+          "when": "editorHasSelection"
+      },
+      {
+        "command": "promptly-code.askOpenAI",
         "key": "cmd+k",
         "mac": "cmd+k",
         "when": "editorHasSelection"

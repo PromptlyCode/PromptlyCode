@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 
 export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('vscode-openai-helper.askOpenAI', async () => {
+    let disposable = vscode.commands.registerCommand('promptly-code.askOpenAI', async () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             return;
@@ -47,13 +47,13 @@ export function activate(context: vscode.ExtensionContext) {
         }, async (progress) => {
             try {
                 const response = await askAI(apiKey!, question, selectedCode);
-                
+
                 // Show response in a new editor
                 const document = await vscode.workspace.openTextDocument({
                     content: response,
                     language: 'markdown'
                 });
-                
+
                 await vscode.window.showTextDocument(document, {
                     viewColumn: vscode.ViewColumn.Beside
                 });
@@ -106,7 +106,7 @@ async function promptForApiKey(): Promise<string | undefined> {
 async function askAI(apiKey: string, question: string, code: string): Promise<string> {
     try {
         const fullQuestion = `Question about this code: ${question}\n\nHere's the code:\n${code}`;
-        
+
         const response = await axios.post(
             'https://openrouter.ai/api/v1/chat/completions',
             {
