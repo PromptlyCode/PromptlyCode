@@ -4,8 +4,9 @@ Promptly Code, AI automatic programming vscode extension
 
 ## Features
 
-- [ ] cmd+k Code Question Modification
-- [ ] tab Automatically complete code and predict code
+- [ ] Cmd+k Code Question Modification
+- [ ] Tab Automatically complete code and predict code
+- [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction
 
 ## Develop
 
