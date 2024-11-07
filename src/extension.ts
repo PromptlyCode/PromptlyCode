@@ -1,4 +1,3 @@
-// src/extension.ts
 import * as vscode from 'vscode';
 import axios from 'axios';
 
@@ -43,11 +42,11 @@ export function activate(context: vscode.ExtensionContext) {
         // Show progress indicator
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Asking OpenAI...",
+            title: "Asking Claude...",
             cancellable: false
         }, async (progress) => {
             try {
-                const response = await askOpenAI(apiKey!, question, selectedCode);
+                const response = await askAI(apiKey!, question, selectedCode);
                 
                 // Show response in a new editor
                 const document = await vscode.workspace.openTextDocument({
@@ -79,13 +78,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 async function promptForApiKey(): Promise<string | undefined> {
     const result = await vscode.window.showInputBox({
-        prompt: 'Please enter your OpenAI API key',
-        placeHolder: 'sk-...',
+        prompt: 'Please enter your OpenRouter API key',
+        placeHolder: 'sk-or-...',
         password: true, // Masks the input
         ignoreFocusOut: true, // Keeps input box open when focus is lost
         validateInput: (value: string) => {
-            if (!value.startsWith('sk-')) {
-                return 'API key should start with "sk-"';
+            if (!value.startsWith('sk-or-')) {
+                return 'OpenRouter API key should start with "sk-or-"';
             }
             if (value.length < 20) {
                 return 'API key seems too short';
@@ -104,50 +103,26 @@ async function promptForApiKey(): Promise<string | undefined> {
     return undefined;
 }
 
-async function validateApiKey(apiKey: string): Promise<boolean> {
+async function askAI(apiKey: string, question: string, code: string): Promise<string> {
     try {
-        await axios.post(
+        const fullQuestion = `Question about this code: ${question}\n\nHere's the code:\n${code}`;
+        
+        const response = await axios.post(
             'https://openrouter.ai/api/v1/chat/completions',
             {
                 model: 'anthropic/claude-3.5-sonnet',
                 messages: [
                     {
                         role: 'user',
-                        content: 'Hello'
+                        content: fullQuestion
                     }
                 ],
-                max_tokens: 1 // Minimize tokens for validation
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
-
-async function askOpenAI(apiKey: string, question: string, code: string): Promise<string> {
-    try {
-        const response = await axios.post(
-            'https://api.openai.com/v1/chat/completions',
-            {
-                model: 'gpt-4',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a helpful assistant that answers questions about code.'
-                    },
-                    {
-                        role: 'user',
-                        content: `Question: ${question}\n\nCode:\n${code}`
-                    }
-                ],
-                temperature: 0.7
+                top_p: 1,
+                temperature: 1,
+                frequency_penalty: 0,
+                presence_penalty: 0,
+                repetition_penalty: 1,
+                top_k: 0,
             },
             {
                 headers: {
@@ -163,7 +138,7 @@ async function askOpenAI(apiKey: string, question: string, code: string): Promis
             if (error.response.status === 401) {
                 throw new Error('Invalid API key');
             }
-            throw new Error(`OpenAI API error: ${error.response.data.error.message}`);
+            throw new Error(`API error: ${error.response.data.error.message}`);
         }
         throw error;
     }
