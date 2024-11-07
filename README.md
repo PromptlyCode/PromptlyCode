@@ -1,10 +1,11 @@
 # Promptly Code
-* Inspired by https://www.cursor.com/
-Promptly Code, AI automatic programming vscode extension
+* Promptly Code, AI automatic programming vscode extension, Inspired by https://www.cursor.com/
+
+[![Watch the video](./youtube_cover.png)](https://youtu.be/KdTh2FbjVyo)
 
 ## Features
 
-- [ ] Cmd+k code question modification
+- [x] Cmd+k code question modification
 - [ ] Tab automatically complete code and predict code
 - [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction
 
