@@ -1,3 +1,4 @@
+// src/extension.ts
 import * as vscode from 'vscode';
 import axios from 'axios';
 
@@ -42,21 +43,19 @@ export function activate(context: vscode.ExtensionContext) {
         // Show progress indicator
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Asking Claude...",
+            title: "Processing with Claude...",
             cancellable: false
         }, async (progress) => {
             try {
-                const response = await askAI(apiKey!, question, selectedCode);
-
-                // Show response in a new editor
-                const document = await vscode.workspace.openTextDocument({
-                    content: response,
-                    language: 'markdown'
+                const newCode = await askAI(apiKey!, question, selectedCode);
+                
+                // Replace the selected text with the new code
+                await editor.edit(editBuilder => {
+                    editBuilder.replace(selection, newCode);
                 });
 
-                await vscode.window.showTextDocument(document, {
-                    viewColumn: vscode.ViewColumn.Beside
-                });
+                // Show success message
+                vscode.window.showInformationMessage('Code updated successfully!');
             } catch (error) {
                 if (error instanceof Error) {
                     // If API key is invalid, prompt for a new one
@@ -80,8 +79,8 @@ async function promptForApiKey(): Promise<string | undefined> {
     const result = await vscode.window.showInputBox({
         prompt: 'Please enter your OpenRouter API key',
         placeHolder: 'sk-or-...',
-        password: true, // Masks the input
-        ignoreFocusOut: true, // Keeps input box open when focus is lost
+        password: true,
+        ignoreFocusOut: true,
         validateInput: (value: string) => {
             if (!value.startsWith('sk-or-')) {
                 return 'OpenRouter API key should start with "sk-or-"';
@@ -94,7 +93,6 @@ async function promptForApiKey(): Promise<string | undefined> {
     });
 
     if (result) {
-        // Save the API key to settings
         const config = vscode.workspace.getConfiguration('openaiHelper');
         await config.update('apiKey', result, true);
         vscode.window.showInformationMessage('API key saved successfully!');
@@ -103,10 +101,33 @@ async function promptForApiKey(): Promise<string | undefined> {
     return undefined;
 }
 
+function extractCodeFromResponse(response: string): string {
+    // Try to find code between markdown code blocks
+    const markdownMatch = response.match(/```(?:\w+)?\n([\s\S]+?)\n```/);
+    if (markdownMatch) {
+        return markdownMatch[1].trim();
+    }
+
+    // If no markdown blocks found, attempt to extract just the code section
+    const codeMatch = response.match(/(?:Here's the code:|Here is the code:)\n*([\s\S]+)$/i);
+    if (codeMatch) {
+        return codeMatch[1].trim();
+    }
+
+    // If no specific markers found, return the whole response
+    return response.trim();
+}
+
 async function askAI(apiKey: string, question: string, code: string): Promise<string> {
     try {
-        const fullQuestion = `Question about this code: ${question}\n\nHere's the code:\n${code}`;
+        const fullPrompt = `I have this code:
 
+${code}
+
+${question}
+
+Please provide only the modified code without any explanation or markdown tags. Do not include \`\`\` markers. Just return the code that should replace the current selection.`;
+        
         const response = await axios.post(
             'https://openrouter.ai/api/v1/chat/completions',
             {
@@ -114,7 +135,7 @@ async function askAI(apiKey: string, question: string, code: string): Promise<st
                 messages: [
                     {
                         role: 'user',
-                        content: fullQuestion
+                        content: fullPrompt
                     }
                 ],
                 top_p: 1,
@@ -132,7 +153,8 @@ async function askAI(apiKey: string, question: string, code: string): Promise<st
             }
         );
 
-        return response.data.choices[0].message.content;
+        const responseContent = response.data.choices[0].message.content;
+        return extractCodeFromResponse(responseContent);
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             if (error.response.status === 401) {
