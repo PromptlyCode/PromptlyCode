@@ -1,8 +1,10 @@
-
 export function getWebviewContent() {
     return `<!DOCTYPE html>
         <html>
         <head>
+            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+            <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />
             <style>
                 body {
                     margin: 0;
@@ -29,10 +31,36 @@ export function getWebviewContent() {
                 .user-message {
                     background-color: var(--vscode-editor-selectionBackground);
                     margin-left: 20%;
+                    white-space: pre-wrap;
                 }
                 .assistant-message {
                     background-color: var(--vscode-editor-inactiveSelectionBackground);
                     margin-right: 20%;
+                }
+                .assistant-message pre {
+                    background-color: var(--vscode-editor-background);
+                    padding: 1em;
+                    border-radius: 4px;
+                    overflow-x: auto;
+                }
+                .assistant-message code {
+                    font-family: var(--vscode-editor-font-family);
+                    font-size: var(--vscode-editor-font-size);
+                }
+                .assistant-message p {
+                    margin: 0.5em 0;
+                }
+                .assistant-message ul, .assistant-message ol {
+                    margin: 0.5em 0;
+                    padding-left: 2em;
+                }
+                .assistant-message table {
+                    border-collapse: collapse;
+                    margin: 1em 0;
+                }
+                .assistant-message th, .assistant-message td {
+                    border: 1px solid var(--vscode-editor-foreground);
+                    padding: 6px 13px;
                 }
                 #input-container {
                     display: flex;
@@ -45,6 +73,8 @@ export function getWebviewContent() {
                     background-color: var(--vscode-input-background);
                     color: var(--vscode-input-foreground);
                     border: 1px solid var(--vscode-input-border);
+                    min-height: 2.5em;
+                    resize: vertical;
                 }
                 button {
                     padding: 5px 10px;
@@ -62,7 +92,7 @@ export function getWebviewContent() {
             <div id="chat-container">
                 <div id="messages"></div>
                 <div id="input-container">
-                    <input type="text" id="message-input" placeholder="Type your message...">
+                    <textarea id="message-input" placeholder="Type your message..."></textarea>
                     <button id="send-button">Send</button>
                 </div>
             </div>
@@ -72,8 +102,18 @@ export function getWebviewContent() {
                 const messageInput = document.getElementById('message-input');
                 const sendButton = document.getElementById('send-button');
 
+                // Configure marked options
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (Prism.languages[lang]) {
+                            return Prism.highlight(code, Prism.languages[lang], lang);
+                        }
+                        return code;
+                    }
+                });
+
                 function sendMessage() {
-                    const text = messageInput.value;
+                    const text = messageInput.value.trim();
                     if (text) {
                         appendMessage(text, 'user');
                         vscode.postMessage({
@@ -87,14 +127,26 @@ export function getWebviewContent() {
                 function appendMessage(text, sender) {
                     const messageDiv = document.createElement('div');
                     messageDiv.className = 'message ' + sender + '-message';
-                    messageDiv.textContent = text;
+                    
+                    if (sender === 'assistant') {
+                        messageDiv.innerHTML = marked.parse(text);
+                        // Apply syntax highlighting to code blocks
+                        messageDiv.querySelectorAll('pre code').forEach((block) => {
+                            Prism.highlightElement(block);
+                        });
+                    } else {
+                        messageDiv.textContent = text;
+                    }
+                    
                     messagesContainer.appendChild(messageDiv);
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }
 
                 sendButton.addEventListener('click', sendMessage);
-                messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
+                
+                messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
                         sendMessage();
                     }
                 });
