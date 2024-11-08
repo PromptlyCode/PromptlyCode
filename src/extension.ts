@@ -99,7 +99,8 @@ export function activate(context: vscode.ExtensionContext) {
                     switch (message.command) {
                         case 'sendMessage':
                             try {
-                                const apiKey = vscode.workspace.getConfiguration().get('aiChat.openrouterKey');
+                                const config = vscode.workspace.getConfiguration('openaiHelper');
+                                let apiKey = config.get<string>('apiKey');
                                 const response = await axios.post(
                                     'https://openrouter.ai/api/v1/chat/completions',
                                     {
