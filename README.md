@@ -24,7 +24,7 @@
 
 * `cmd+l` chat for code
 
-![](./ai-chat.png)
+![](./ai-chat.gif)
 
 ## Develop
 
