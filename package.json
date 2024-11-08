@@ -1,6 +1,7 @@
 {
   "name": "promptlycode",
   "displayName": "PromptlyCode",
+  "publisher": "PromptlyCode",
   "description": "Promptly Code, AI automatic programming vscode extension",
   "version": "0.0.1",
   "engines": {
