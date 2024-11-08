@@ -8,6 +8,7 @@
 * For more information, please visit http://www.promptlycode.com
 
 - [x] Cmd+k code question modification
+- [ ] Cmd+l chat for code
 - [ ] Tab automatically complete code and predict code
 - [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction
 - [ ] Support voice wake-up interactive programming
