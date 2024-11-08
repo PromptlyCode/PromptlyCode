@@ -11,6 +11,10 @@
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PromptlyCode/PromptlyCode"
+  },
   "contributes": {
     "commands": [
       {
@@ -82,3 +86,4 @@
     "axios": "^1.7.7"
   }
 }
+
