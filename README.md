@@ -9,8 +9,8 @@
 
 - [x] Cmd+k code question modification
 - [x] Cmd+l chat for code
-- [ ] Chat question project
-- [ ] Chat to achieve code search question
+- [x] Chat markdown render, code highlight
+- [ ] Chat question project, chat to achieve code search question
 - [ ] Tab automatically complete code and predict code
 - [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction
 - [ ] Support voice wake-up interactive programming
