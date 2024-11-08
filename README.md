@@ -1,6 +1,6 @@
 # [Promptly Code](http://www.promptlycode.com)
 * Promptly Code, AI automatic programming vscode extension, Inspired by [cursor](https://www.cursor.com/)
-* VSCode plugin search [PromptlyCode](https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode): https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode
+* VSCode plugin search ['PromptlyCode'](https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode): https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode
 
 [![Watch the video](./youtube_cover.png)](https://youtu.be/pFg-tJSIFnI)
 
@@ -19,7 +19,7 @@
 
 ## Usage
 
-* VSCode plugin search PromptlyCode and install
+* VSCode plugin search `PromptlyCode` and install
 
 ![](./PromptlyCode_in_VSCode.png)
 
@@ -40,5 +40,7 @@ vscode PromptlyCode
 
 * 1. Inside the editor, open `src/extension.ts` and press `F5` or run the command `Debug: Start Debugging from the Command Palette` (⇧⌘P). This will compile and run the extension in a new `Extension Development Host window`.
 
-* 2. select some code and then press `cmd+k`
+* 2. Select some code and then press `cmd+k`
+
+* 3. Press `cmd+l` and input content to chat
 
