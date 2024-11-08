@@ -19,6 +19,10 @@
 
 ## Usage
 
+* VSCode plugin search PromptlyCode and install
+
+![](./PromptlyCode_in_VSCode.png)
+
 * `cmd+k` for code question
 
 ![](./select-ask.gif)
