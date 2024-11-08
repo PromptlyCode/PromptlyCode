@@ -2,6 +2,8 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 import { ChatViewProvider } from './chatViewProvider';
+import { OpenAI } from 'openai';
+import { ChatProvider } from './chatProvider';
 
 let chatViewProvider: ChatViewProvider;
 
@@ -9,12 +11,72 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize chat view provider
     chatViewProvider = new ChatViewProvider(context.extensionUri);
 
+    const chatProvider = new ChatProvider(context.extensionUri);
+
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             'aiChatView',
             chatViewProvider
         )
     );
+
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('openaiChatView', chatProvider)
+    );
+
+    //const chatProvider = new ChatProvider(context.extensionUri);
+
+    // Register the webview provider
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('openaiChatView', chatProvider)
+    );
+
+    // Register the command to open chat
+    let openChatCommand = vscode.commands.registerCommand('openaiChat.openChat', async () => {
+        try {
+            // Show the OpenAI Chat view in the sidebar
+            await vscode.commands.executeCommand('workbench.view.extension.openai-chat-sidebar');
+
+            // Focus the chat view
+            await vscode.commands.executeCommand('openaiChatView.focus');
+
+            // Initialize OpenAI client if not already done
+            const config = vscode.workspace.getConfiguration('openaiChat');
+            const apiKey = config.get<string>('apiKey');
+
+            if (!apiKey) {
+                vscode.window.showErrorMessage('Please set your OpenAI API key in settings');
+                return;
+            }
+
+            const openai = new OpenAI({ apiKey });
+            chatProvider.setOpenAIClient(openai);
+
+            // Focus the input field if available
+            //chatProvider.focusInput(); // TODO:
+        } catch (error) {
+            vscode.window.showErrorMessage('Failed to open chat view');
+            console.error(error);
+        }
+    });
+
+    context.subscriptions.push(openChatCommand);
+
+    // Register the message sending command
+    let sendMessageCommand = vscode.commands.registerCommand('openaiChat.sendMessage', async () => {
+        const config = vscode.workspace.getConfiguration('openaiChat');
+        const apiKey = config.get<string>('apiKey');
+
+        if (!apiKey) {
+            vscode.window.showErrorMessage('Please set your OpenAI API key in settings');
+            return;
+        }
+
+        const openai = new OpenAI({ apiKey });
+        chatProvider.setOpenAIClient(openai);
+    });
+
+    context.subscriptions.push(sendMessageCommand);
 
     // Register the original command for code modification
     let disposable = vscode.commands.registerCommand('promptly-code.askOpenAI', async () => {
@@ -33,6 +95,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         const config = vscode.workspace.getConfiguration('openaiHelper');
         let apiKey = config.get<string>('apiKey');
+
+        // ----------
+        // const openai = new OpenAI({ apiKey });
+        // chatProvider.setOpenAIClient(openai);
 
         if (!apiKey) {
             apiKey = await promptForApiKey();

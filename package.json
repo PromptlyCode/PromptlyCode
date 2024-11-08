@@ -18,16 +18,16 @@
         "title": "Ask OpenAI about selected code"
       },
       {
-          "command": "promptly-code.createFile",
-          "title": "Create new file from AI response"
+        "command": "promptly-code.createFile",
+        "title": "Create new file from AI response"
       }
     ],
     "keybindings": [
       {
-          "command": "promptly-code.askOpenAI",
-          "key": "ctrl+k",
-          "linux": "ctrl+k",
-          "when": "editorHasSelection"
+        "command": "promptly-code.askOpenAI",
+        "key": "ctrl+k",
+        "linux": "ctrl+k",
+        "when": "editorHasSelection"
       },
       {
         "command": "promptly-code.askOpenAI",
@@ -37,9 +37,15 @@
       },
       {
         "command": "promptly-code.createFile",
+        "key": "cmd+t",
+        "mac": "cmd+t",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "openaiChat.openChat",
         "key": "cmd+l",
         "mac": "cmd+l",
-        "when": "editorHasSelection"
+        "when": "editorTextFocus || editorFocus || filesExplorerFocus || searchViewletFocus"
       }
     ],
     "configuration": {
@@ -79,6 +85,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "axios": "^1.7.7"
+    "axios": "^1.7.7",
+    "openai": "^4.71.1"
   }
 }
