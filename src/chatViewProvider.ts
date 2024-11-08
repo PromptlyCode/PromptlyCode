@@ -1,10 +1,106 @@
 import * as vscode from 'vscode';
+import axios from 'axios';
 
 interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
     timestamp: number;
 }
+
+
+async function promptForApiKey(): Promise<string | undefined> {
+    const result = await vscode.window.showInputBox({
+        prompt: 'Please enter your OpenRouter API key',
+        placeHolder: 'sk-or-...',
+        password: true,
+        ignoreFocusOut: true,
+        validateInput: (value: string) => {
+            if (!value.startsWith('sk-or-')) {
+                return 'OpenRouter API key should start with "sk-or-"';
+            }
+            if (value.length < 20) {
+                return 'API key seems too short';
+            }
+            return null;
+        }
+    });
+
+    if (result) {
+        const config = vscode.workspace.getConfiguration('openaiHelper');
+        await config.update('apiKey', result, true);
+        vscode.window.showInformationMessage('API key saved successfully!');
+        return result;
+    }
+    return undefined;
+}
+
+
+function extractCodeFromResponse(response: string): string {
+    // Try to find code between markdown code blocks
+    const markdownMatch = response.match(/```(?:\w+)?\n([\s\S]+?)\n```/);
+    if (markdownMatch) {
+        return markdownMatch[1].trim();
+    }
+
+    // If no markdown blocks found, attempt to extract just the code section
+    const codeMatch = response.match(/(?:Here's the code:|Here is the code:)\n*([\s\S]+)$/i);
+    if (codeMatch) {
+        return codeMatch[1].trim();
+    }
+
+    // If no specific markers found, return the whole response
+    return response.trim();
+}
+
+async function askAI(apiKey: string, question: string, code: string): Promise<string> {
+    try {
+        const fullPrompt = `I have this code:
+
+${code}
+
+${question}
+
+Please provide only the modified code without any explanation or markdown tags. Do not include \`\`\` markers. Just return the code that should replace the current selection.`;
+
+        const response = await axios.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            {
+                model: 'anthropic/claude-3.5-sonnet',
+                messages: [
+                    {
+                        role: 'user',
+                        content: fullPrompt
+                    }
+                ],
+                top_p: 1,
+                temperature: 1,
+                frequency_penalty: 0,
+                presence_penalty: 0,
+                repetition_penalty: 1,
+                top_k: 0,
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const responseContent = response.data.choices[0].message.content;
+        return extractCodeFromResponse(responseContent);
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            if (error.response.status === 401) {
+                throw new Error('Invalid API key');
+            }
+            throw new Error(`API error: ${error.response.data.error.message}`);
+        }
+        throw error;
+    }
+}
+
+// ---- help 
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
