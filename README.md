@@ -22,6 +22,10 @@
 
 ![](./select-ask.gif)
 
+* `cmd+l` chat for code
+
+![](./ai-chat.png)
+
 ## Develop
 
 ```sh
