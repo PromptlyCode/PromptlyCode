@@ -1,7 +1,7 @@
 # [Promptly Code](http://www.promptlycode.com)
 * Promptly Code, AI automatic programming vscode extension, Inspired by [cursor](https://www.cursor.com/)
 
-[![Watch the video](./youtube_cover.png)](https://youtu.be/KdTh2FbjVyo)
+[![Watch the video](./youtube_cover.png)](https://youtu.be/pFg-tJSIFnI)
 
 ## Features
 
