@@ -1,15 +1,28 @@
 // src/extension.ts
 import * as vscode from 'vscode';
 import axios from 'axios';
+import { ChatViewProvider } from './chatViewProvider';
+
+let chatViewProvider: ChatViewProvider;
 
 export function activate(context: vscode.ExtensionContext) {
+    // Initialize chat view provider
+    chatViewProvider = new ChatViewProvider(context.extensionUri);
+
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            'aiChatView',
+            chatViewProvider
+        )
+    );
+
+    // Register the original command for code modification
     let disposable = vscode.commands.registerCommand('promptly-code.askOpenAI', async () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             return;
         }
 
-        // Get the selected text
         const selection = editor.selection;
         const selectedCode = editor.document.getText(selection);
 
@@ -18,19 +31,16 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        // Get the API key from settings
         const config = vscode.workspace.getConfiguration('openaiHelper');
         let apiKey = config.get<string>('apiKey');
 
-        // If API key is not set, prompt for it
         if (!apiKey) {
             apiKey = await promptForApiKey();
             if (!apiKey) {
-                return; // User cancelled the input
+                return;
             }
         }
 
-        // Show input box for the question
         const question = await vscode.window.showInputBox({
             placeHolder: 'What would you like to ask about this code?',
             prompt: 'Enter your question',
@@ -40,7 +50,6 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        // Show progress indicator
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Processing with Claude...",
@@ -48,13 +57,9 @@ export function activate(context: vscode.ExtensionContext) {
         }, async (progress) => {
             try {
                 const newCode = await askAI(apiKey!, question, selectedCode);
-                
-                // Replace the selected text with the new code
                 await editor.edit(editBuilder => {
                     editBuilder.replace(selection, newCode);
                 });
-
-                // Show success message
                 vscode.window.showInformationMessage('Code updated successfully!');
             } catch (error) {
                 if (error instanceof Error) {
@@ -71,6 +76,17 @@ export function activate(context: vscode.ExtensionContext) {
             }
         });
     });
+
+    // Register command to create new file from chat
+    context.subscriptions.push(
+        vscode.commands.registerCommand('promptly-code.createFile', async (content: string, language: string) => {
+            const document = await vscode.workspace.openTextDocument({
+                content: content,
+                language: language
+            });
+            await vscode.window.showTextDocument(document);
+        })
+    );
 
     context.subscriptions.push(disposable);
 }
@@ -127,7 +143,7 @@ ${code}
 ${question}
 
 Please provide only the modified code without any explanation or markdown tags. Do not include \`\`\` markers. Just return the code that should replace the current selection.`;
-        
+
         const response = await axios.post(
             'https://openrouter.ai/api/v1/chat/completions',
             {
