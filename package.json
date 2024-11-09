@@ -3,6 +3,7 @@
   "displayName": "PromptlyCode",
   "publisher": "PromptlyCode",
   "description": "Promptly Code, AI automatic programming vscode extension",
+  "icon": "./small-logo.png",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.95.0"
