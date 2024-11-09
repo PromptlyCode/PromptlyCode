@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
 import { getWebviewContent } from './codeChat';
+import { updateGraphVisualization } from './parse_typescript/show_graph';
 
 export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('promptly-code.askOpenAI', async () => {
@@ -150,7 +151,50 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposable2);
+ 
+    // cmd-e
+        // Register keyboard shortcut
+        context.subscriptions.push(
+            vscode.commands.registerCommand('extension.showGraphVisualization', () => {
+                if (currentPanel) {
+                    currentPanel.reveal();
+                } else {
+                    currentPanel = vscode.window.createWebviewPanel(
+                        'graphVisualization',
+                        'Graph Visualization',
+                        vscode.ViewColumn.Two,
+                        {
+                            enableScripts: true,
+                            retainContextWhenHidden: true
+                        }
+                    );
     
+                    // Handle panel disposal
+                    currentPanel.onDidDispose(
+                        () => {
+                            currentPanel = undefined;
+                        },
+                        null,
+                        context.subscriptions
+                    );
+    
+                    // Handle messages from webview
+                    currentPanel.webview.onDidReceiveMessage(
+                        message => {
+                            switch (message.command) {
+                                case 'refresh':
+                                    updateGraphVisualization();
+                                    break;
+                            }
+                        },
+                        undefined,
+                        context.subscriptions
+                    );
+    
+                    updateGraphVisualization();
+                }
+            })
+        );
 }
 
 async function promptForApiKey(): Promise<string | undefined> {

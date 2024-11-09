@@ -30,6 +30,10 @@
       {
         "command": "promptly-code.startChat",
         "title": "Chat OpenAI about code"
+      },
+      {
+        "command": "extension.showGraphVisualization",
+        "title": "Show Graph Visualization"
       }
     ],
     "keybindings": [
@@ -49,6 +53,12 @@
         "command": "promptly-code.startChat",
         "key": "cmd+l",
         "mac": "cmd+l",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "extension.showGraphVisualization",
+        "key": "cmd+e",
+        "mac": "cmd+e",
         "when": "editorTextFocus"
       }
     ],
