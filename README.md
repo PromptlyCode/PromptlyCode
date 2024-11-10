@@ -12,7 +12,7 @@
 - [x] Cmd+l chat for code
 - [x] Chat markdown render, code highlight
 - [x] View the graphviz diagram of the function relationship
-- [ ] support RAG code search by ollama nomic-embed-text
+- [ ] Support RAG code search by ollama nomic-embed-text
 - [ ] Chat question project, chat to achieve code search question
 - [ ] Tab automatically complete code and predict code
 - [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction
