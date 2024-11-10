@@ -1,6 +1,6 @@
 # [Promptly Code](http://www.promptlycode.com)
 * Promptly Code, AI automatic programming vscode extension, Inspired by [cursor](https://www.cursor.com/)
-* VSCode plugin search ['PromptlyCode'](https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode): https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode
+* VSCode plugin search [PromptlyCode](https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode): https://marketplace.visualstudio.com/items?itemName=PromptlyCode.promptlycode
 
 [![Watch the video](./youtube_cover.png)](https://youtu.be/pFg-tJSIFnI)
 
