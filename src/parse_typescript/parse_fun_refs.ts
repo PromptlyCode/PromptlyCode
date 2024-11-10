@@ -54,12 +54,12 @@ function generateGraphviz(functionCalls: { [key: string]: string[] }): string {
 }
 
 // Main function to parse TypeScript file and output the Graphviz DOT format
-export function parseFileTs(fileName: string) {
+export function parseFileTs(fileName: string): string {
     const sourceFile = getSourceFile(fileName);
     
     if (!sourceFile) {
         console.error(`Could not read source file: ${fileName}`);
-        return;
+        return "";
     }
 
     console.log(`Parsing file: ${fileName}`);
@@ -71,4 +71,6 @@ export function parseFileTs(fileName: string) {
     const outputFileName = fileName.replace(".ts", ".dot");
     fs.writeFileSync(outputFileName, graphvizOutput);
     console.log(`Graphviz DOT output written to ${outputFileName}`);
+
+    return graphvizOutput;
 }

@@ -1,15 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import { parseFileTs } from './parse_fun_refs';
 
-
-const execAsync = promisify(exec);
-
-let currentPanel: vscode.WebviewPanel | undefined = undefined;
-
-export async function updateGraphVisualization() {
+export async function updateGraphVisualization(currentPanel: any, execAsync: any) {
     if (!currentPanel) return;
 
     const editor = vscode.window.activeTextEditor;
@@ -18,6 +11,8 @@ export async function updateGraphVisualization() {
     try {
         const fileName = editor.document.fileName;
         const dotContent = await parseFileTs(fileName);
+        console.log("dot content: ------ ")
+        console.log(dotContent)
 
         // Convert dot to SVG using Graphviz
         const { stdout: svgContent } = await execAsync(`echo "${dotContent}" | dot -Tsvg`);

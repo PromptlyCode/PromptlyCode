@@ -3,6 +3,11 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 import { getWebviewContent } from './codeChat';
 import { updateGraphVisualization } from './parse_typescript/show_graph';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('promptly-code.askOpenAI', async () => {
@@ -183,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
                         message => {
                             switch (message.command) {
                                 case 'refresh':
-                                    updateGraphVisualization();
+                                    updateGraphVisualization(currentPanel, execAsync);
                                     break;
                             }
                         },
@@ -191,7 +196,7 @@ export function activate(context: vscode.ExtensionContext) {
                         context.subscriptions
                     );
     
-                    updateGraphVisualization();
+                    updateGraphVisualization(currentPanel, execAsync);
                 }
             })
         );
