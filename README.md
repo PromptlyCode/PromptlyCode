@@ -32,7 +32,7 @@
 
 ![](./ai-chat.gif)
 
-* `cmd-e` show function refs
+* `cmd-e` show function relationship
 
 ![](./show_fun_refs.gif)
 
