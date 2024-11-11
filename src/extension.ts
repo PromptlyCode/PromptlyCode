@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import axios from "axios";
 import { getWebviewContent } from "./codeChat";
 import { updateGraphVisualization } from "./parse_typescript/show_graph";
-import { completionItems } from './tab_auto_complete/yasnippet'
+import { completionItems } from "./tab_auto_complete/yasnippet";
 import { exec } from "child_process";
 import { promisify } from "util";
 
@@ -255,6 +255,72 @@ export function activate(context: vscode.ExtensionContext) {
   // Push the provider to subscriptions
   context.subscriptions.push(provider3);
   //---
+
+  // inline suggest
+  // Register the inline completion provider
+  const provider4 = vscode.languages.registerInlineCompletionItemProvider(
+    { scheme: "file", language: "python" },
+    {
+      async provideInlineCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        context: vscode.InlineCompletionContext,
+        token: vscode.CancellationToken
+      ): Promise<vscode.InlineCompletionItem[] | vscode.InlineCompletionList> {
+        // Get the current line text up to the cursor
+        const linePrefix = document
+          .lineAt(position)
+          .text.substring(0, position.character);
+
+        // Store found functions and their full definitions
+        const functionDefinitions: Map<string, string> = new Map();
+
+        // Analyze the document for function definitions
+        for (let i = 0; i < document.lineCount; i++) {
+          const line = document.lineAt(i).text;
+          const funcMatch = line.match(/def\s+(\w+)\s*\((.*?)\):/);
+          if (funcMatch) {
+            const [_, functionName, params] = funcMatch;
+            functionDefinitions.set(functionName, `${functionName}(${params})`);
+          }
+        }
+
+        const suggestions: vscode.InlineCompletionItem[] = [];
+
+        // If user is typing 'def'
+        if (linePrefix.trim().match(/^def\s*$/)) {
+          // Suggest all existing function patterns
+          for (const [funcName, fullDef] of functionDefinitions) {
+            suggestions.push({
+              insertText: `${funcName}():\n    `,
+              range: new vscode.Range(position, position),
+            });
+          }
+        }
+        // If user is typing a function name
+        else if (linePrefix.length > 0) {
+          for (const [funcName, fullDef] of functionDefinitions) {
+            if (funcName.startsWith(linePrefix.trim())) {
+              suggestions.push({
+                insertText: fullDef.substring(linePrefix.trim().length),
+                range: new vscode.Range(position, position),
+              });
+            }
+          }
+        }
+
+        return suggestions;
+      },
+    }
+  );
+
+  // Register the configuration for inline suggestions
+  vscode.workspace
+    .getConfiguration()
+    .update("editor.inlineSuggest.enabled", true, true);
+
+  context.subscriptions.push(provider4);
+  //
 }
 
 async function promptForApiKey(): Promise<string | undefined> {
