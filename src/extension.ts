@@ -6,6 +6,39 @@ import { updateGraphVisualization } from "./parse_typescript/show_graph";
 import { exec } from "child_process";
 import { promisify } from "util";
 
+// tab ----
+
+// This interface defines the structure of our completion items
+interface CompletionItem {
+  label: string;
+  detail: string;
+  documentation: string;
+  insertText: string;
+}
+
+// Sample completion items - you can expand this list
+const completionItems: CompletionItem[] = [
+  {
+    label: "console.log",
+    detail: "Print to console",
+    documentation: "Outputs a message to the console",
+    insertText: "console.log($1);",
+  },
+  {
+    label: "if",
+    detail: "If statement",
+    documentation: "Conditional if statement",
+    insertText: "if ($1) {\n\t$2\n}",
+  },
+  {
+    label: "function",
+    detail: "Function declaration",
+    documentation: "Creates a new function",
+    insertText: "function $1($2) {\n\t$3\n}",
+  },
+];
+//-----
+
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
@@ -212,6 +245,48 @@ export function activate(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  // --- tab
+  // Register the completion provider
+  const provider3 = vscode.languages.registerCompletionItemProvider(
+    // Define which file types to provide completions for
+    { scheme: "file", language: "javascript" },
+    {
+      provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position
+      ) {
+        // Create array for completion items
+        const completions: vscode.CompletionItem[] = [];
+
+        // Get the current line text and position
+        const linePrefix = document
+          .lineAt(position)
+          .text.substr(0, position.character);
+
+        // Add completion items
+        completionItems.forEach((item) => {
+          const completion = new vscode.CompletionItem(item.label);
+          completion.kind = vscode.CompletionItemKind.Snippet;
+          completion.detail = item.detail;
+          completion.documentation = new vscode.MarkdownString(
+            item.documentation
+          );
+
+          // Use a snippet for insert text
+          completion.insertText = new vscode.SnippetString(item.insertText);
+
+          completions.push(completion);
+        });
+
+        return completions;
+      },
+    }
+  );
+
+  // Push the provider to subscriptions
+  context.subscriptions.push(provider3);
+  //---
 }
 
 async function promptForApiKey(): Promise<string | undefined> {
