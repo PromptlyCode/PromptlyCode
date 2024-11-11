@@ -13,9 +13,10 @@
     "vscode": "^1.95.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Programming Languages"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onLanguage:python"],
   "main": "./dist/extension.js",
   "repository": {
     "type": "git",
@@ -69,6 +70,11 @@
           "type": "string",
           "default": "",
           "description": "Your OpenAI API key"
+        },
+        "pythonFunctionSuggestions.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable function suggestions"
         }
       }
     }
