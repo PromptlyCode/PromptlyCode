@@ -3,41 +3,9 @@ import * as vscode from "vscode";
 import axios from "axios";
 import { getWebviewContent } from "./codeChat";
 import { updateGraphVisualization } from "./parse_typescript/show_graph";
+import { completionItems } from './tab_auto_complete/yasnippet'
 import { exec } from "child_process";
 import { promisify } from "util";
-
-// tab ----
-
-// This interface defines the structure of our completion items
-interface CompletionItem {
-  label: string;
-  detail: string;
-  documentation: string;
-  insertText: string;
-}
-
-// Sample completion items - you can expand this list
-const completionItems: CompletionItem[] = [
-  {
-    label: "console.log",
-    detail: "Print to console",
-    documentation: "Outputs a message to the console",
-    insertText: "console.log($1);",
-  },
-  {
-    label: "if",
-    detail: "If statement",
-    documentation: "Conditional if statement",
-    insertText: "if ($1) {\n\t$2\n}",
-  },
-  {
-    label: "function",
-    detail: "Function declaration",
-    documentation: "Creates a new function",
-    insertText: "function $1($2) {\n\t$3\n}",
-  },
-];
-//-----
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
