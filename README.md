@@ -12,6 +12,7 @@
 - [x] Cmd+l chat for code
 - [x] Chat markdown render, code highlight
 - [x] View the graphviz diagram of the function relationship
+- [x] AI automatic environment construction and repair, ReAct mechanism: https://github.com/PromptlyCode/ai-automatic-env-build
 - [ ] Support RAG code search by ollama nomic-embed-text
 - [ ] Chat question project, chat to achieve code search question
 - [ ] Tab automatically complete code and predict code
