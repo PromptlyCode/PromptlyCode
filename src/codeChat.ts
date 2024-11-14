@@ -117,8 +117,8 @@ export function getWebviewContent() {
                     </svg>
                 </div>
                 <div id="input-container">
-                    <textarea id="message-input" placeholder="Type your message..."></textarea>
-                    <button id="send-button">Send</button>
+                    <textarea id="message-input" placeholder="Type your question..." style="background:#e5ebf1;margin-bottom: 5px;" autofocus></textarea>
+                    <button id="send-button" style="margin-bottom: 10px;border-radius: 3px;">Send</button>
                 </div>
             </div>
             <script>
