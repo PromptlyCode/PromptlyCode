@@ -86,11 +86,22 @@ export function getWebviewContent() {
                 button:hover {
                     background-color: var(--vscode-button-hoverBackground);
                 }
+                /* Loading Spinner */
+                #loading-spinner {
+                    display: none;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 24px;
+                    color: var(--vscode-editor-foreground);
+                }
             </style>
         </head>
         <body>
             <div id="chat-container">
                 <div id="messages"></div>
+                <div id="loading-spinner">Loading...</div> <!-- Loading Spinner -->
                 <div id="input-container">
                     <textarea id="message-input" placeholder="Type your message..."></textarea>
                     <button id="send-button">Send</button>
@@ -101,6 +112,7 @@ export function getWebviewContent() {
                 const messagesContainer = document.getElementById('messages');
                 const messageInput = document.getElementById('message-input');
                 const sendButton = document.getElementById('send-button');
+                const loadingSpinner = document.getElementById('loading-spinner'); // Loading spinner element
 
                 // Configure marked options
                 marked.setOptions({
@@ -116,6 +128,7 @@ export function getWebviewContent() {
                     const text = messageInput.value.trim();
                     if (text) {
                         appendMessage(text, 'user');
+                        showLoading(true); // Show loading spinner
                         vscode.postMessage({
                             command: 'sendMessage',
                             text: text
@@ -140,6 +153,17 @@ export function getWebviewContent() {
                     
                     messagesContainer.appendChild(messageDiv);
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    if (sender === 'assistant') {
+                        showLoading(false); // Hide loading spinner once response is received
+                    }
+                }
+
+                function showLoading(isLoading) {
+                    if (isLoading) {
+                        loadingSpinner.style.display = 'block'; // Show spinner
+                    } else {
+                        loadingSpinner.style.display = 'none'; // Hide spinner
+                    }
                 }
 
                 sendButton.addEventListener('click', sendMessage);
