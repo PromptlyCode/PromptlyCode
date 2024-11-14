@@ -93,15 +93,29 @@ export function getWebviewContent() {
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    font-size: 24px;
-                    color: var(--vscode-editor-foreground);
+                    width: 50px;
+                    height: 50px;
+                }
+                /* SVG Spinner */
+                .spinner {
+                    animation: spin 1s linear infinite;
+                    width: 100%;
+                    height: 100%;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
                 }
             </style>
         </head>
         <body>
             <div id="chat-container">
                 <div id="messages"></div>
-                <div id="loading-spinner">Loading...</div> <!-- Loading Spinner -->
+                <div id="loading-spinner"> 
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" class="spinner">
+                        <circle cx="25" cy="25" r="20" stroke="var(--vscode-editor-foreground)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <div id="input-container">
                     <textarea id="message-input" placeholder="Type your message..."></textarea>
                     <button id="send-button">Send</button>
