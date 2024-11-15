@@ -26,7 +26,7 @@ interface ChatMessage {
 //   context.subscriptions.push(openChat);
 // }
 
-export function createChatPanel(chatPanel: any, context: vscode.ExtensionContext) {
+export function createChatPanel(chatPanel: any, context: vscode.ExtensionContext, apiKey: string) {
   chatPanel = vscode.window.createWebviewPanel(
     'aiChat',
     'AI Chat',
@@ -42,7 +42,7 @@ export function createChatPanel(chatPanel: any, context: vscode.ExtensionContext
     async message => {
       switch (message.command) {
         case 'sendMessage':
-          const response = await handleChatMessage(message.text);
+          const response = await handleChatMessage(message.text, apiKey);
           // Send response back to webview
           chatPanel?.webview.postMessage({ command: 'response', text: response });
           break;
@@ -64,9 +64,9 @@ export function createChatPanel(chatPanel: any, context: vscode.ExtensionContext
   );
 }
 
-async function handleChatMessage(message: string): Promise<any> {
+async function handleChatMessage(message: string, apiKey: string): Promise<any> {
   const headers = {
-    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    'Authorization': `Bearer ${apiKey}`,
     'Content-Type': 'application/json'
   };
 

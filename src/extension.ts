@@ -391,10 +391,13 @@ export function activate(context: vscode.ExtensionContext) {
   //
     // Register the chat command (cmd+l)
     let openChat = vscode.commands.registerCommand('aitools.openChat', () => {
+      const config = vscode.workspace.getConfiguration("openaiHelper");
+      let apiKey = config.get<string>("apiKey");
+
       if (currentPanel) {
         currentPanel.reveal(vscode.ViewColumn.Two);
       } else {
-        createChatPanel(currentPanel, context);
+        createChatPanel(currentPanel, context, apiKey);
       }
     });
   
