@@ -29,7 +29,7 @@
         "title": "Ask OpenAI about selected code"
       },
       {
-        "command": "promptly-code.startChat",
+        "command": "aitools.openChat",
         "title": "Chat OpenAI about code"
       },
       {
@@ -51,7 +51,7 @@
         "when": "editorHasSelection"
       },
       {
-        "command": "promptly-code.startChat",
+        "command": "aitools.openChat",
         "key": "cmd+l",
         "mac": "cmd+l",
         "when": "editorTextFocus"
