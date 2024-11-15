@@ -124,7 +124,8 @@ export function activate(context: vscode.ExtensionContext) {
                     "https://openrouter.ai/api/v1/chat/completions",
                     {
                       model: "anthropic/claude-3.5-sonnet",
-                      messages: [{ role: "user", content: message.text }],
+                      messages: [{role: "system", content: "You are an experienced programmer named Steve, an AI programmer assistant created by PromptlyCode"},
+                                  {role: "user", content: message.text }],
                       top_p: 1,
                       temperature: 1,
                       frequency_penalty: 0,
@@ -454,7 +455,7 @@ Please provide only the modified code without any explanation or markdown tags. 
         messages: [
           {
             role: "system",
-            content: "You are an experienced programmer named Steve",
+            content: "You are an experienced programmer named Steve, an AI programmer assistant created by PromptlyCode",
           },
           {
             role: "user",

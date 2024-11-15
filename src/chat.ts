@@ -11,7 +11,7 @@ async function chatAI(apiKey: string, question: string, code: string): Promise<s
                 messages: [
                     {
                         role: "system",
-                        content: "You are an experienced programmer named Steve, from PromptlyCode",
+                        content: "You are an experienced programmer named Steve, an AI programmer assistant created by PromptlyCode",
                     },
                     {
                         role: 'user',
