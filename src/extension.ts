@@ -390,7 +390,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(provider4, functionNameProvider);
   //
     // Register the chat command (cmd+l)
-    let openChat = vscode.commands.registerCommand('aitools.openChat', () => {
+    let openChat = vscode.commands.registerCommand('promptly-code.openChat', () => {
       const config = vscode.workspace.getConfiguration("openaiHelper");
       let apiKey = config.get<string>("apiKey");
 
@@ -400,7 +400,7 @@ export function activate(context: vscode.ExtensionContext) {
         createChatPanel(currentPanel, context, apiKey);
       }
     });
-  
+
     context.subscriptions.push(openChat);
 
 }
