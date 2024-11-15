@@ -25,6 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
       // Get the selected text
       const selection = editor.selection;
       const selectedCode = editor.document.getText(selection);
+      const languageId = editor.document.languageId;
 
       if (!selectedCode) {
         vscode.window.showErrorMessage("Please select some code first");
@@ -57,12 +58,12 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: "Processing with Claude...",
+          title: "Processing with PromptlyCode...",
           cancellable: false,
         },
         async (progress) => {
           try {
-            const newCode = await askAI(apiKey!, question, selectedCode);
+            const newCode = await askAI(apiKey!, question, selectedCode, languageId);
 
             // Replace the selected text with the new code
             await editor.edit((editBuilder) => {
@@ -458,10 +459,11 @@ function extractCodeFromResponse(response: string): string {
 async function askAI(
   apiKey: string,
   question: string,
-  code: string
+  code: string,
+  languageId: string
 ): Promise<string> {
   try {
-    const fullPrompt = `I have this code:
+    const fullPrompt = `I have this code, use language ${languageId}:
 
 ${code}
 
