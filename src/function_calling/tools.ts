@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getWebviewContent } from "../codeChat";
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 // Webview panel for chat
 // let chatPanel: vscode.WebviewPanel | undefined = undefined;
@@ -75,6 +77,44 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
               }
             },
             required: ['file_path']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'write_file',
+          description: 'Write content to a file',
+          parameters: {
+            type: 'object',
+            properties: {
+              file_path: {
+                type: 'string',
+                description: 'Path to the file to write'
+              },
+              content: {
+                type: 'string',
+                description: 'Content to write to the file'
+              }
+            },
+            required: ['file_path', 'content']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'search_code',
+          description: 'Search code using silver searcher (ag)',
+          parameters: {
+            type: 'object',
+            properties: {
+              search_term: {
+                type: 'string',
+                description: 'Term to search for in the codebase'
+              }
+            },
+            required: ['search_term']
           }
         }
       },
@@ -155,6 +195,12 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
             case 'read_file':
               toolResult = await readFile(args.file_path);
               break;
+            case 'write_file':
+              toolResult = await writeFile(args.file_path, args.content);
+              break;
+            case 'search_code':
+              toolResult = await searchCode(args.search_term);
+              break;
             case 'list_directory':
               toolResult = await listDirectory(args.directory_path);
               break;
@@ -231,3 +277,41 @@ async function getFileInfo(filePath: string): Promise<any> {
   }
 }
 
+async function writeFile(filePath: string, content: string): Promise<string> {
+  try {
+    const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+    const fullPath = path.isAbsolute(filePath) ? 
+      filePath : 
+      path.join(workspacePath || '', filePath);
+    
+    fs.writeFileSync(fullPath, content, 'utf-8');
+    return `Successfully wrote to file: ${filePath}`;
+  } catch (error) {
+    throw new Error(`Failed to write file: ==== {error.message}`);
+  }
+}
+
+async function searchCode(searchTerm: string): Promise<string> {
+  const execAsync = promisify(exec);
+
+  try {
+    const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+    if (!workspacePath) {
+      throw new Error('No workspace folder found');
+    }
+
+    // Execute ag command and capture output
+    const { stdout, stderr } = await execAsync(`ag "${searchTerm}" ${workspacePath}`);
+    
+    if (stderr) {
+      console.warn('Search warning:', stderr);
+    }
+
+    return stdout || 'No results found';
+  } catch (error) {
+    if (error.code === 1 && !error.stdout) {
+      return 'No matches found';
+    }
+    throw new Error(`Search failed: ---- {error.message}`);
+  }
+}
