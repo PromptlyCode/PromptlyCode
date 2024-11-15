@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { getWebviewContent } from "../codeChat";
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { model, modelUrl, systemDefaultPrompt } from '../config';
 
 // Webview panel for chat
 // let chatPanel: vscode.WebviewPanel | undefined = undefined;
@@ -157,7 +158,7 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
     const messages: ChatMessage[] = [
       {
         role: "system",
-        content: "You are an experienced programmer named Steve, an AI programmer assistant created by PromptlyCode",
+        content: systemDefaultPrompt,
       },
       { role: 'user', content: message }
     ];
@@ -166,11 +167,11 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
     let continueConversation = true;
 
     while (continueConversation) {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch(`${modelUrl}/v1/chat/completions`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          model: 'openai/gpt-4-0125-preview',
+          model: model,
           messages,
           tools,
           tool_choice: 'auto'
