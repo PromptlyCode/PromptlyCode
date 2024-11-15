@@ -1,42 +1,48 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 import { getWebviewContent } from "../codeChat";
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { model, modelUrl, systemDefaultPrompt } from '../config';
+import { exec } from "child_process";
+import { promisify } from "util";
+import { model, modelUrl, systemDefaultPrompt } from "../config";
 
 // Webview panel for chat
 // let chatPanel: vscode.WebviewPanel | undefined = undefined;
 
 interface ChatMessage {
-  role: 'user' | 'assistant' | 'tool' | 'system';
+  role: "user" | "assistant" | "tool" | "system";
   content: string;
   tool_calls?: any[];
   name?: string;
   tool_call_id?: string;
 }
 
-
-export function createChatPanel(chatPanel: any, context: vscode.ExtensionContext, apiKey: string) {
+export function createChatPanel(
+  chatPanel: any,
+  context: vscode.ExtensionContext,
+  apiKey: string
+) {
   chatPanel = vscode.window.createWebviewPanel(
-    'aiChat',
-    'AI Chat',
+    "aiChat",
+    "AI Chat",
     vscode.ViewColumn.Two,
     {
       enableScripts: true,
-      retainContextWhenHidden: true
+      retainContextWhenHidden: true,
     }
   );
 
   // Handle messages from the webview
   chatPanel.webview.onDidReceiveMessage(
-    async message => {
+    async (message) => {
       switch (message.command) {
-        case 'sendMessage':
+        case "sendMessage":
           const response = await handleChatMessage(message.text, apiKey);
           // Send response back to webview
-          chatPanel?.webview.postMessage({ command: 'response', text: response });
+          chatPanel?.webview.postMessage({
+            command: "response",
+            text: response,
+          });
           break;
       }
     },
@@ -56,103 +62,106 @@ export function createChatPanel(chatPanel: any, context: vscode.ExtensionContext
   );
 }
 
-async function handleChatMessage(message: string, apiKey: string): Promise<any> {
+async function handleChatMessage(
+  message: string,
+  apiKey: string
+): Promise<any> {
   const headers = {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
   };
 
   try {
     const tools = [
       {
-        type: 'function',
+        type: "function",
         function: {
-          name: 'read_file',
-          description: 'Read the contents of a file',
+          name: "read_file",
+          description: "Read the contents of a file",
           parameters: {
-            type: 'object',
+            type: "object",
             properties: {
               file_path: {
-                type: 'string',
-                description: 'Path to the file to read'
-              }
+                type: "string",
+                description: "Path to the file to read",
+              },
             },
-            required: ['file_path']
-          }
-        }
+            required: ["file_path"],
+          },
+        },
       },
       {
-        type: 'function',
+        type: "function",
         function: {
-          name: 'write_file',
-          description: 'Write content to a file',
+          name: "write_file",
+          description: "Write content to a file",
           parameters: {
-            type: 'object',
+            type: "object",
             properties: {
               file_path: {
-                type: 'string',
-                description: 'Path to the file to write'
+                type: "string",
+                description: "Path to the file to write",
               },
               content: {
-                type: 'string',
-                description: 'Content to write to the file'
-              }
+                type: "string",
+                description: "Content to write to the file",
+              },
             },
-            required: ['file_path', 'content']
-          }
-        }
+            required: ["file_path", "content"],
+          },
+        },
       },
       {
-        type: 'function',
+        type: "function",
         function: {
-          name: 'search_code',
-          description: 'Search code using silver searcher (ag)',
+          name: "search_code",
+          description: "Search code using silver searcher (ag)",
           parameters: {
-            type: 'object',
+            type: "object",
             properties: {
               search_term: {
-                type: 'string',
-                description: 'Term to search for in the codebase'
-              }
+                type: "string",
+                description: "Term to search for in the codebase",
+              },
             },
-            required: ['search_term']
-          }
-        }
+            required: ["search_term"],
+          },
+        },
       },
       {
-        type: 'function',
+        type: "function",
         function: {
-          name: 'list_directory',
-          description: 'List contents of a directory',
+          name: "list_directory",
+          description: "List contents of a directory",
           parameters: {
-            type: 'object',
+            type: "object",
             properties: {
               directory_path: {
-                type: 'string',
-                description: 'Path to the directory'
-              }
+                type: "string",
+                description: "Path to the directory",
+              },
             },
-            required: ['directory_path']
-          }
-        }
+            required: ["directory_path"],
+          },
+        },
       },
       {
-        type: 'function',
+        type: "function",
         function: {
-          name: 'get_file_info',
-          description: 'Get detailed information about a file',
+          name: "get_file_info",
+          description: "Get detailed information about a file",
           parameters: {
-            type: 'object',
+            type: "object",
             properties: {
               file_path: {
-                type: 'string',
-                description: 'Path to the file'
-              }
+                type: "string",
+                description: "Path to the file",
+              },
             },
-            required: ['file_path']
-          }
-        }
-      }
+            required: ["file_path"],
+          },
+        },
+      },
     ];
 
     const messages: ChatMessage[] = [
@@ -160,30 +169,30 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
         role: "system",
         content: systemDefaultPrompt,
       },
-      { role: 'user', content: message }
+      { role: "user", content: message },
     ];
 
-    let finalResponse = '';
+    let finalResponse = "";
     let continueConversation = true;
 
     while (continueConversation) {
       const response = await fetch(`${modelUrl}/v1/chat/completions`, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify({
           model: model,
           messages,
           tools,
-          tool_choice: 'auto'
-        })
+          tool_choice: "auto",
+        }),
       });
 
       if (!response.ok) {
         throw new Error(`API request failed: ${response.statusText}`);
       }
 
-      const data = await response.json();      
-      console.log(data)
+      const data = await response.json();
+      console.log(data);
       const assistantMessage = data.choices[0].message;
       messages.push(assistantMessage);
 
@@ -193,28 +202,28 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
           let toolResult;
 
           switch (toolCall.function.name) {
-            case 'read_file':
+            case "read_file":
               toolResult = await readFile(args.file_path);
               break;
-            case 'write_file':
+            case "write_file":
               toolResult = await writeFile(args.file_path, args.content);
               break;
-            case 'search_code':
+            case "search_code":
               toolResult = await searchCode(args.search_term);
               break;
-            case 'list_directory':
+            case "list_directory":
               toolResult = await listDirectory(args.directory_path);
               break;
-            case 'get_file_info':
+            case "get_file_info":
               toolResult = await getFileInfo(args.file_path);
               break;
           }
 
           messages.push({
-            role: 'tool',
+            role: "tool",
             tool_call_id: toolCall.id,
             name: toolCall.function.name,
-            content: JSON.stringify(toolResult)
+            content: JSON.stringify(toolResult),
           });
         }
       } else {
@@ -224,9 +233,8 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
     }
 
     return finalResponse;
-
   } catch (error) {
-    console.error('Error in chat:', error);
+    console.error("Error in chat:", error);
     return `Error: +++++ {error.message}`;
   }
 }
@@ -235,11 +243,11 @@ async function readFile(filePath: string): Promise<string> {
   try {
     // Handle both absolute paths and workspace-relative paths
     const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-    const fullPath = path.isAbsolute(filePath) ? 
-      filePath : 
-      path.join(workspacePath || '', filePath);
-    
-    return fs.readFileSync(fullPath, 'utf-8');
+    const fullPath = path.isAbsolute(filePath)
+      ? filePath
+      : path.join(workspacePath || "", filePath);
+
+    return fs.readFileSync(fullPath, "utf-8");
   } catch (error) {
     throw new Error(`Failed to read file: ____ {error.message}`);
   }
@@ -248,10 +256,10 @@ async function readFile(filePath: string): Promise<string> {
 async function listDirectory(directoryPath: string): Promise<string[]> {
   try {
     const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-    const fullPath = path.isAbsolute(directoryPath) ? 
-      directoryPath : 
-      path.join(workspacePath || '', directoryPath);
-    
+    const fullPath = path.isAbsolute(directoryPath)
+      ? directoryPath
+      : path.join(workspacePath || "", directoryPath);
+
     return fs.readdirSync(fullPath);
   } catch (error) {
     throw new Error(`Failed to list directory: --- {error.message}`);
@@ -261,17 +269,17 @@ async function listDirectory(directoryPath: string): Promise<string[]> {
 async function getFileInfo(filePath: string): Promise<any> {
   try {
     const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-    const fullPath = path.isAbsolute(filePath) ? 
-      filePath : 
-      path.join(workspacePath || '', filePath);
-    
+    const fullPath = path.isAbsolute(filePath)
+      ? filePath
+      : path.join(workspacePath || "", filePath);
+
     const stats = fs.statSync(fullPath);
     return {
       size: stats.size,
       created: stats.birthtime,
       modified: stats.mtime,
       isDirectory: stats.isDirectory(),
-      isFile: stats.isFile()
+      isFile: stats.isFile(),
     };
   } catch (error) {
     throw new Error(`Failed to get file info: === {error.message}`);
@@ -281,11 +289,11 @@ async function getFileInfo(filePath: string): Promise<any> {
 async function writeFile(filePath: string, content: string): Promise<string> {
   try {
     const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-    const fullPath = path.isAbsolute(filePath) ? 
-      filePath : 
-      path.join(workspacePath || '', filePath);
-    
-    fs.writeFileSync(fullPath, content, 'utf-8');
+    const fullPath = path.isAbsolute(filePath)
+      ? filePath
+      : path.join(workspacePath || "", filePath);
+
+    fs.writeFileSync(fullPath, content, "utf-8");
     return `Successfully wrote to file: ${filePath}`;
   } catch (error) {
     throw new Error(`Failed to write file: ==== {error.message}`);
@@ -298,20 +306,22 @@ async function searchCode(searchTerm: string): Promise<string> {
   try {
     const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
     if (!workspacePath) {
-      throw new Error('No workspace folder found');
+      throw new Error("No workspace folder found");
     }
 
     // Execute ag command and capture output
-    const { stdout, stderr } = await execAsync(`ag "${searchTerm}" ${workspacePath}`);
-    
+    const { stdout, stderr } = await execAsync(
+      `ag "${searchTerm}" ${workspacePath}`
+    );
+
     if (stderr) {
-      console.warn('Search warning:', stderr);
+      console.warn("Search warning:", stderr);
     }
 
-    return stdout || 'No results found';
+    return stdout || "No results found";
   } catch (error) {
     if (error.code === 1 && !error.stdout) {
-      return 'No matches found';
+      return "No matches found";
     }
     throw new Error(`Search failed: ---- {error.message}`);
   }

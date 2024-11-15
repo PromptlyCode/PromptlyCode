@@ -4,10 +4,10 @@ import axios from "axios";
 import { getWebviewContent } from "./codeChat";
 import { updateGraphVisualization } from "./parse_typescript/show_graph";
 import { completionItems } from "./tab_auto_complete/yasnippet";
-import { createChatPanel } from "./function_calling/tools"
+import { createChatPanel } from "./function_calling/tools";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { model, modelUrl, systemDefaultPrompt } from './config';
+import { model, modelUrl, systemDefaultPrompt } from "./config";
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -127,8 +127,10 @@ export function activate(context: vscode.ExtensionContext) {
                     `${modelUrl}/v1/chat/completions`,
                     {
                       model: model,
-                      messages: [{role: "system", content: systemDefaultPrompt},
-                                  {role: "user", content: message.text }],
+                      messages: [
+                        { role: "system", content: systemDefaultPrompt },
+                        { role: "user", content: message.text },
+                      ],
                       top_p: 1,
                       temperature: 1,
                       frequency_penalty: 0,
@@ -390,8 +392,10 @@ export function activate(context: vscode.ExtensionContext) {
   // Add both providers to subscriptions
   context.subscriptions.push(provider4, functionNameProvider);
   //
-    // Register the chat command (cmd+l)
-    let openChat = vscode.commands.registerCommand('promptly-code.openChat', () => {
+  // Register the chat command (cmd+l)
+  let openChat = vscode.commands.registerCommand(
+    "promptly-code.openChat",
+    () => {
       const config = vscode.workspace.getConfiguration("openaiHelper");
       let apiKey = config.get<string>("apiKey");
 
@@ -400,10 +404,10 @@ export function activate(context: vscode.ExtensionContext) {
       } else {
         createChatPanel(currentPanel, context, apiKey);
       }
-    });
+    }
+  );
 
-    context.subscriptions.push(openChat);
-
+  context.subscriptions.push(openChat);
 }
 
 async function promptForApiKey(): Promise<string | undefined> {
