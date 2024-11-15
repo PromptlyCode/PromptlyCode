@@ -17,6 +17,11 @@ interface ChatMessage {
   tool_call_id?: string;
 }
 
+interface ChatDataMessage {
+  command: string;
+  text: string;
+}
+
 export function createChatPanel(
   chatPanel: any,
   context: vscode.ExtensionContext,
@@ -34,7 +39,7 @@ export function createChatPanel(
 
   // Handle messages from the webview
   chatPanel.webview.onDidReceiveMessage(
-    async (message) => {
+    async (message: ChatDataMessage) => { // Explicitly typed parameter
       switch (message.command) {
         case "sendMessage":
           const response = await handleChatMessage(message.text, apiKey);
