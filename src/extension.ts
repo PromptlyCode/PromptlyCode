@@ -453,6 +453,10 @@ Please provide only the modified code without any explanation or markdown tags. 
         model: "anthropic/claude-3.5-sonnet",
         messages: [
           {
+            role: "system",
+            content: "You are an experienced programmer named Steve",
+          },
+          {
             role: "user",
             content: fullPrompt,
           },

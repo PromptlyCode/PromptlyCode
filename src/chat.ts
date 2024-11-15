@@ -10,6 +10,10 @@ async function chatAI(apiKey: string, question: string, code: string): Promise<s
                 model: 'anthropic/claude-3.5-sonnet',
                 messages: [
                     {
+                        role: "system",
+                        content: "You are an experienced programmer named Steve, from PromptlyCode",
+                    },
+                    {
                         role: 'user',
                         content: fullQuestion
                     }
