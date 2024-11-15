@@ -7,6 +7,7 @@ import { completionItems } from "./tab_auto_complete/yasnippet";
 import { createChatPanel } from "./function_calling/tools"
 import { exec } from "child_process";
 import { promisify } from "util";
+import { model, modelUrl, systemDefaultPrompt } from './config';
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -123,10 +124,10 @@ export function activate(context: vscode.ExtensionContext) {
                     vscode.workspace.getConfiguration("openaiHelper");
                   let apiKey = config.get<string>("apiKey");
                   const response = await axios.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
+                    `${modelUrl}/v1/chat/completions`,
                     {
-                      model: "anthropic/claude-3.5-sonnet",
-                      messages: [{role: "system", content: "You are an experienced programmer named Steve, an AI programmer assistant created by PromptlyCode"},
+                      model: model,
+                      messages: [{role: "system", content: systemDefaultPrompt},
                                   {role: "user", content: message.text }],
                       top_p: 1,
                       temperature: 1,
@@ -465,13 +466,13 @@ ${question}
 Please provide only the modified code without any explanation or markdown tags. Do not include \`\`\` markers. Just return the code that should replace the current selection.`;
 
     const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
+      `${modelUrl}/v1/chat/completions`,
       {
-        model: "anthropic/claude-3.5-sonnet",
+        model: model,
         messages: [
           {
             role: "system",
-            content: "You are an experienced programmer named Steve, an AI programmer assistant created by PromptlyCode",
+            content: systemDefaultPrompt,
           },
           {
             role: "user",
