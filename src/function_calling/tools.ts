@@ -325,9 +325,9 @@ async function searchCode(searchTerm: string): Promise<string> {
 
     return stdout || "No results found";
   } catch (error) {
-    if (error.code === 1 && !error.stdout) {
-      return "No matches found";
-    }
-    throw new Error(`Search failed: ---- {error.message}`);
+    // if (error.code === 1 && !error.stdout) {
+    //   return "No matches found";
+    // }
+    throw new Error(`Search failed: ${error}`);
   }
 }
