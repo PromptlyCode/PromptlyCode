@@ -1,30 +1,19 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { getWebviewContent } from "../codeChat";
 
 // Webview panel for chat
 // let chatPanel: vscode.WebviewPanel | undefined = undefined;
 
 interface ChatMessage {
-  role: 'user' | 'assistant' | 'tool';
+  role: 'user' | 'assistant' | 'tool' | 'system';
   content: string;
   tool_calls?: any[];
   name?: string;
   tool_call_id?: string;
 }
 
-// export function activate(context: vscode.ExtensionContext) {
-//   // Register the chat command (cmd+l)
-//   let openChat = vscode.commands.registerCommand('aitools.openChat', () => {
-//     if (chatPanel) {
-//       chatPanel.reveal(vscode.ViewColumn.Two);
-//     } else {
-//       createChatPanel(context);
-//     }
-//   });
-
-//   context.subscriptions.push(openChat);
-// }
 
 export function createChatPanel(chatPanel: any, context: vscode.ExtensionContext, apiKey: string) {
   chatPanel = vscode.window.createWebviewPanel(
@@ -126,6 +115,10 @@ async function handleChatMessage(message: string, apiKey: string): Promise<any> 
     ];
 
     const messages: ChatMessage[] = [
+      {
+        role: "system",
+        content: "You are an experienced programmer named Steve, an AI programmer assistant created by PromptlyCode",
+      },
       { role: 'user', content: message }
     ];
 
@@ -236,119 +229,5 @@ async function getFileInfo(filePath: string): Promise<any> {
   } catch (error) {
     throw new Error(`Failed to get file info: === {error.message}`);
   }
-}
-
-function getWebviewContent() {
-  return `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat</title>
-    <style>
-      body {
-        font-family: var(--vscode-font-family);
-        padding: 10px;
-        color: var(--vscode-editor-foreground);
-        background-color: var(--vscode-editor-background);
-      }
-      #chat-container {
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - 20px);
-      }
-      #messages {
-        flex-grow: 1;
-        overflow-y: auto;
-        margin-bottom: 10px;
-        padding: 10px;
-        border: 1px solid var(--vscode-input-border);
-      }
-      .message {
-        margin-bottom: 10px;
-        padding: 8px;
-        border-radius: 4px;
-      }
-      .user-message {
-        background-color: var(--vscode-editor-selectionBackground);
-      }
-      .assistant-message {
-        background-color: var(--vscode-editor-inactiveSelectionBackground);
-      }
-      #input-container {
-        display: flex;
-        gap: 10px;
-      }
-      #message-input {
-        flex-grow: 1;
-        padding: 8px;
-        background-color: var(--vscode-input-background);
-        color: var(--vscode-input-foreground);
-        border: 1px solid var(--vscode-input-border);
-      }
-      button {
-        padding: 8px 16px;
-        background-color: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
-        border: none;
-        cursor: pointer;
-      }
-      button:hover {
-        background-color: var(--vscode-button-hoverBackground);
-      }
-    </style>
-  </head>
-  <body>
-    <div id="chat-container">
-      <div id="messages"></div>
-      <div id="input-container">
-        <input type="text" id="message-input" placeholder="Type your message...">
-        <button id="send-button">Send</button>
-      </div>
-    </div>
-    <script>
-      const vscode = acquireVsCodeApi();
-      const messagesDiv = document.getElementById('messages');
-      const messageInput = document.getElementById('message-input');
-      const sendButton = document.getElementById('send-button');
-
-      function addMessage(text, isUser) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = \`message \${isUser ? 'user-message' : 'assistant-message'}\`;
-        messageDiv.textContent = text;
-        messagesDiv.appendChild(messageDiv);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      }
-
-      function sendMessage() {
-        const text = messageInput.value.trim();
-        if (text) {
-          addMessage(text, true);
-          vscode.postMessage({
-            command: 'sendMessage',
-            text: text
-          });
-          messageInput.value = '';
-        }
-      }
-
-      sendButton.addEventListener('click', sendMessage);
-      messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          sendMessage();
-        }
-      });
-
-      window.addEventListener('message', event => {
-        const message = event.data;
-        switch (message.command) {
-          case 'response':
-            addMessage(message.text, false);
-            break;
-        }
-      });
-    </script>
-  </body>
-  </html>`;
 }
 
