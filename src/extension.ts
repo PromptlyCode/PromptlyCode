@@ -402,7 +402,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (currentPanel) {
         currentPanel.reveal(vscode.ViewColumn.Two);
       } else {
-        createChatPanel(currentPanel, context, apiKey);
+        createChatPanel(currentPanel, context, `${apiKey}`);
       }
     }
   );
