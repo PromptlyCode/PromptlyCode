@@ -16,11 +16,13 @@ let currentPanel: vscode.WebviewPanel | undefined = undefined;
 interface PromptlyCodeConfig {
   apiKey: string;
   apiUrl: string;
+  apiModel: string;
 }
 
 const DEFAULT_CONFIG: PromptlyCodeConfig = {
   apiKey: '',
   apiUrl: 'https://api.openrouter.ai',
+  apiModel: 'anthropic/claude-3-opus-20240229',
 };
 
 export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): string {
@@ -96,6 +98,12 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
                 <div class="error" id="apiUrlError">Please enter a valid URL</div>
             </div>
 
+            <div class="form-group">
+                <label for="apiModel">AI Model</label>
+                <input type="text" id="apiModel" name="apiModel" value="${currentConfig.apiModel}" required>
+                <div class="hint">Example: anthropic/claude-3-opus-20240229, google/gemini-pro</div>
+            </div>
+
             <button type="submit">Save Settings</button>
         </form>
 
@@ -104,6 +112,7 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
             const form = document.getElementById('settingsForm');
             const apiKeyInput = document.getElementById('apiKey');
             const apiUrlInput = document.getElementById('apiUrl');
+            const apiModelInput = document.getElementById('apiModel');
             const apiKeyError = document.getElementById('apiKeyError');
             const apiUrlError = document.getElementById('apiUrlError');
 
@@ -141,6 +150,7 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
                 
                 const apiKey = apiKeyInput.value;
                 const apiUrl = apiUrlInput.value;
+                const apiModel = apiModelInput.value.trim();
 
                 if (!validateApiKey(apiKey)) {
                     apiKeyError.style.display = 'block';
@@ -152,10 +162,15 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
                     return;
                 }
 
+                if (!apiModel) {
+                    return;
+                }
+
                 vscode.postMessage({
                     command: 'saveSettings',
                     apiKey,
-                    apiUrl
+                    apiUrl,
+                    apiModel
                 });
             });
         </script>
@@ -176,7 +191,8 @@ export async function showSettingsWebview(context: vscode.ExtensionContext): Pro
   const config = vscode.workspace.getConfiguration('promptlyCode');
   const currentConfig: PromptlyCodeConfig = {
     apiKey: config.get('apiKey', DEFAULT_CONFIG.apiKey),
-    apiUrl: config.get('apiUrl', DEFAULT_CONFIG.apiUrl)
+    apiUrl: config.get('apiUrl', DEFAULT_CONFIG.apiUrl),
+    apiModel: config.get('apiModel', DEFAULT_CONFIG.apiModel)
   };
 
   panel.webview.html = getSettingsWebviewContent(currentConfig);
@@ -188,6 +204,7 @@ export async function showSettingsWebview(context: vscode.ExtensionContext): Pro
           try {
             await config.update('apiKey', message.apiKey, true);
             await config.update('apiUrl', message.apiUrl, true);
+            await config.update('apiModel', message.apiModel, true);
             vscode.window.showInformationMessage('Settings saved successfully!');
             panel.dispose();
           } catch (error) {
@@ -201,7 +218,7 @@ export async function showSettingsWebview(context: vscode.ExtensionContext): Pro
   );
 }
 
-// Add this to your package.json
+// Package.json configuration
 const packageJsonConfig = {
   "contributes": {
     "configuration": {
@@ -216,6 +233,11 @@ const packageJsonConfig = {
           "type": "string",
           "default": "https://api.openrouter.ai",
           "description": "API endpoint URL"
+        },
+        "promptlyCode.apiModel": {
+          "type": "string",
+          "default": "anthropic/claude-3-opus-20240229",
+          "description": "AI model identifier (e.g., anthropic/claude-3-opus-20240229)"
         }
       }
     },
