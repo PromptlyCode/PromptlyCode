@@ -35,6 +35,10 @@
       {
         "command": "extension.showGraphVisualization",
         "title": "PromptlyCode Show Graph Visualization"
+      },
+      {
+        "command": "promptlyCode.openSettings",
+        "title": "PromptlyCode Settings"
       }
     ],
     "keybindings": [
