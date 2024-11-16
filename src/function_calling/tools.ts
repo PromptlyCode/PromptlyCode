@@ -22,6 +22,37 @@ interface ChatDataMessage {
   text: string;
 }
 
+interface ChatToolCall {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
+interface ChatAssistantMessage {
+  role: "assistant";
+  content: string;
+  tool_calls?: ChatToolCall[];
+}
+
+interface ChatAPIResponse {
+  choices: {
+    message: ChatAssistantMessage;
+    index: number;
+    finish_reason: string;
+  }[];
+  id: string;
+  created: number;
+  model: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
 export function createChatPanel(
   chatPanel: any,
   context: vscode.ExtensionContext,
@@ -196,9 +227,12 @@ async function handleChatMessage(
         throw new Error(`API request failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      // const data = await response.json();
+      // const assistantMessage = data.choices[0].message;
+      const data = (await response.json()) as ChatAPIResponse;
       console.log(data);
       const assistantMessage = data.choices[0].message;
+
       messages.push(assistantMessage);
 
       if (assistantMessage.tool_calls) {
