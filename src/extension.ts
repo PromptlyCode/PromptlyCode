@@ -12,7 +12,241 @@ import { model, modelUrl, systemDefaultPrompt } from "./config";
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
+//
+interface PromptlyCodeConfig {
+  apiKey: string;
+  apiUrl: string;
+}
+
+const DEFAULT_CONFIG: PromptlyCodeConfig = {
+  apiKey: '',
+  apiUrl: 'https://api.openrouter.ai',
+};
+
+export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): string {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PromptlyCode Settings</title>
+        <style>
+            body {
+                font-family: var(--vscode-font-family);
+                padding: 20px;
+                color: var(--vscode-foreground);
+                background-color: var(--vscode-editor-background);
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                color: var(--vscode-input-foreground);
+            }
+            input[type="text"], 
+            input[type="password"] {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 10px;
+                background: var(--vscode-input-background);
+                color: var(--vscode-input-foreground);
+                border: 1px solid var(--vscode-input-border);
+                border-radius: 4px;
+            }
+            .hint {
+                font-size: 12px;
+                color: var(--vscode-descriptionForeground);
+                margin-top: 4px;
+            }
+            button {
+                background: var(--vscode-button-background);
+                color: var(--vscode-button-foreground);
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background: var(--vscode-button-hoverBackground);
+            }
+            .error {
+                color: var(--vscode-errorForeground);
+                margin-top: 4px;
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>PromptlyCode Configuration</h2>
+        <form id="settingsForm">
+            <div class="form-group">
+                <label for="apiKey">OpenRouter API Key</label>
+                <input type="password" id="apiKey" name="apiKey" value="${currentConfig.apiKey}" required>
+                <div class="hint">Your API key should start with 'sk-or-'</div>
+                <div class="error" id="apiKeyError">Invalid API key format</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="apiUrl">API URL</label>
+                <input type="text" id="apiUrl" name="apiUrl" value="${currentConfig.apiUrl}" required>
+                <div class="hint">Default: https://api.openrouter.ai</div>
+                <div class="error" id="apiUrlError">Please enter a valid URL</div>
+            </div>
+
+            <button type="submit">Save Settings</button>
+        </form>
+
+        <script>
+            const vscode = acquireVsCodeApi();
+            const form = document.getElementById('settingsForm');
+            const apiKeyInput = document.getElementById('apiKey');
+            const apiUrlInput = document.getElementById('apiUrl');
+            const apiKeyError = document.getElementById('apiKeyError');
+            const apiUrlError = document.getElementById('apiUrlError');
+
+            function validateApiKey(value) {
+                return value.startsWith('sk-or-') && value.length >= 20;
+            }
+
+            function validateUrl(value) {
+                try {
+                    new URL(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+
+            apiKeyInput.addEventListener('input', () => {
+                if (!validateApiKey(apiKeyInput.value)) {
+                    apiKeyError.style.display = 'block';
+                } else {
+                    apiKeyError.style.display = 'none';
+                }
+            });
+
+            apiUrlInput.addEventListener('input', () => {
+                if (!validateUrl(apiUrlInput.value)) {
+                    apiUrlError.style.display = 'block';
+                } else {
+                    apiUrlError.style.display = 'none';
+                }
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const apiKey = apiKeyInput.value;
+                const apiUrl = apiUrlInput.value;
+
+                if (!validateApiKey(apiKey)) {
+                    apiKeyError.style.display = 'block';
+                    return;
+                }
+
+                if (!validateUrl(apiUrl)) {
+                    apiUrlError.style.display = 'block';
+                    return;
+                }
+
+                vscode.postMessage({
+                    command: 'saveSettings',
+                    apiKey,
+                    apiUrl
+                });
+            });
+        </script>
+    </body>
+    </html>`;
+}
+
+export async function showSettingsWebview(context: vscode.ExtensionContext): Promise<void> {
+  const panel = vscode.window.createWebviewPanel(
+    'promptlyCodeSettings',
+    'PromptlyCode Settings',
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true
+    }
+  );
+
+  const config = vscode.workspace.getConfiguration('promptlyCode');
+  const currentConfig: PromptlyCodeConfig = {
+    apiKey: config.get('apiKey', DEFAULT_CONFIG.apiKey),
+    apiUrl: config.get('apiUrl', DEFAULT_CONFIG.apiUrl)
+  };
+
+  panel.webview.html = getSettingsWebviewContent(currentConfig);
+
+  panel.webview.onDidReceiveMessage(
+    async message => {
+      switch (message.command) {
+        case 'saveSettings':
+          try {
+            await config.update('apiKey', message.apiKey, true);
+            await config.update('apiUrl', message.apiUrl, true);
+            vscode.window.showInformationMessage('Settings saved successfully!');
+            panel.dispose();
+          } catch (error) {
+            vscode.window.showErrorMessage('Failed to save settings');
+          }
+          break;
+      }
+    },
+    undefined,
+    context.subscriptions
+  );
+}
+
+// Add this to your package.json
+const packageJsonConfig = {
+  "contributes": {
+    "configuration": {
+      "title": "PromptlyCode",
+      "properties": {
+        "promptlyCode.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API key"
+        },
+        "promptlyCode.apiUrl": {
+          "type": "string",
+          "default": "https://api.openrouter.ai",
+          "description": "API endpoint URL"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "promptlyCode.openSettings",
+        "title": "Open PromptlyCode Settings"
+      }
+    ]
+  }
+};
+//
+
 export function activate(context: vscode.ExtensionContext) {
+  //
+    // Register settings command
+    let disposable0 = vscode.commands.registerCommand('promptlyCode.openSettings', () => {
+      showSettingsWebview(context);
+    });
+  
+    context.subscriptions.push(disposable0);
+  
+    // Check if API key is configured
+    const config = vscode.workspace.getConfiguration('promptlyCode');
+    const apiKey = config.get<string>('apiKey');
+    
+    if (!apiKey) {
+      showSettingsWebview(context);
+    }  
+  //
+
   let disposable = vscode.commands.registerCommand(
     "promptly-code.askOpenAI",
     async () => {
