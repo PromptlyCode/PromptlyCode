@@ -7,7 +7,7 @@ import { completionItems } from "./tab_auto_complete/yasnippet";
 import { createChatPanel } from "./function_calling/tools";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { model, modelUrl, systemDefaultPrompt } from "./config";
+import { systemDefaultPrompt } from "./config";
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -289,18 +289,12 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       // Get the API key from settings
-      const config = vscode.workspace.getConfiguration("openaiHelper");
+      const config = vscode.workspace.getConfiguration("promptlyCode");
       let apiKey = config.get<string>("apiKey");
+      const apiModel = config.get<string>('apiModel');
+      const apiUrl = config.get<string>('apiUrl');
 
-      // If API key is not set, prompt for it
-      if (!apiKey) {
-        apiKey = await promptForApiKey();
-        if (!apiKey) {
-          return; // User cancelled the input
-        }
-      }
-
-      // Show input box for the question
+      // Show input box for the question: TODO: addr
       const question = await vscode.window.showInputBox({
         placeHolder: "What would you like to ask about this code?",
         prompt: "Enter your question",
@@ -319,7 +313,7 @@ export function activate(context: vscode.ExtensionContext) {
         },
         async (progress) => {
           try {
-            const newCode = await askAI(apiKey!, question, selectedCode, languageId);
+            const newCode = await askAI(apiKey!, apiModel!, apiUrl!, question, selectedCode, languageId);
 
             // Replace the selected text with the new code
             await editor.edit((editBuilder) => {
@@ -333,9 +327,8 @@ export function activate(context: vscode.ExtensionContext) {
               // If API key is invalid, prompt for a new one
               if (error.message.includes("API key")) {
                 vscode.window.showErrorMessage(
-                  "Invalid API key. Please enter a new one."
+                  "Invalid API key. Please enter a new one. Please cmd/ctrl+shif+p input promptlyCode.openSettings to set key"
                 );
-                await promptForApiKey();
               } else {
                 vscode.window.showErrorMessage(`Error: ${error.message}`);
               }
@@ -378,12 +371,14 @@ export function activate(context: vscode.ExtensionContext) {
               case "sendMessage":
                 try {
                   const config =
-                    vscode.workspace.getConfiguration("openaiHelper");
+                    vscode.workspace.getConfiguration("promptlyCode");
                   let apiKey = config.get<string>("apiKey");
+                  const apiModel = config.get<string>('apiModel');
+                  const apiUrl = config.get<string>('apiUrl');
                   const response = await axios.post(
-                    `${modelUrl}/v1/chat/completions`,
+                    `${apiUrl}/v1/chat/completions`,
                     {
-                      model: model,
+                      model: apiModel,
                       messages: [
                         { role: "system", content: systemDefaultPrompt },
                         { role: "user", content: message.text },
@@ -483,44 +478,20 @@ export function activate(context: vscode.ExtensionContext) {
   let openChat = vscode.commands.registerCommand(
     "promptlyCode.openChat",
     () => {
-      const config = vscode.workspace.getConfiguration("openaiHelper");
-      let apiKey = config.get<string>("apiKey");
+      const config = vscode.workspace.getConfiguration("promptlyCode");
+      const apiKey = config.get<string>("apiKey");
+      const apiModel = config.get<string>('apiModel');
+      const apiUrl = config.get<string>('apiUrl');
 
       if (currentPanel) {
         currentPanel.reveal(vscode.ViewColumn.Two);
       } else {
-        createChatPanel(currentPanel, context, `${apiKey}`);
+        createChatPanel(currentPanel, context, `${apiKey}`, `${apiModel}`, `${apiUrl}`);
       }
     }
   );
 
   context.subscriptions.push(openChat);
-}
-
-async function promptForApiKey(): Promise<string | undefined> {
-  const result = await vscode.window.showInputBox({
-    prompt: "Please enter your OpenRouter API key",
-    placeHolder: "sk-or-...",
-    password: true,
-    ignoreFocusOut: true,
-    validateInput: (value: string) => {
-      if (!value.startsWith("sk-or-")) {
-        return 'OpenRouter API key should start with "sk-or-"';
-      }
-      if (value.length < 20) {
-        return "API key seems too short";
-      }
-      return null;
-    },
-  });
-
-  if (result) {
-    const config = vscode.workspace.getConfiguration("openaiHelper");
-    await config.update("apiKey", result, true);
-    vscode.window.showInformationMessage("API key saved successfully!");
-    return result;
-  }
-  return undefined;
 }
 
 function extractCodeFromResponse(response: string): string {
@@ -544,6 +515,8 @@ function extractCodeFromResponse(response: string): string {
 
 async function askAI(
   apiKey: string,
+  model: string,
+  modelUrl: string,
   question: string,
   code: string,
   languageId: string

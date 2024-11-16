@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { getWebviewContent } from "../codeChat";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { model, modelUrl, systemDefaultPrompt } from "../config";
+import { systemDefaultPrompt } from "../config";
 
 // Webview panel for chat
 // let chatPanel: vscode.WebviewPanel | undefined = undefined;
@@ -56,7 +56,9 @@ interface ChatAPIResponse {
 export function createChatPanel(
   chatPanel: any,
   context: vscode.ExtensionContext,
-  apiKey: string
+  apiKey: string,
+  model: string,
+  modelUrl: string
 ) {
   chatPanel = vscode.window.createWebviewPanel(
     "aiChat",
@@ -73,7 +75,7 @@ export function createChatPanel(
     async (message: ChatDataMessage) => { // Explicitly typed parameter
       switch (message.command) {
         case "sendMessage":
-          const response = await handleChatMessage(message.text, apiKey);
+          const response = await handleChatMessage(message.text, apiKey, model, modelUrl);
           // Send response back to webview
           chatPanel?.webview.postMessage({
             command: "response",
@@ -100,7 +102,9 @@ export function createChatPanel(
 
 async function handleChatMessage(
   message: string,
-  apiKey: string
+  apiKey: string,
+  model: string,
+  modelUrl: string
 ): Promise<any> {
   const headers = {
     Authorization: `Bearer ${apiKey}`,
