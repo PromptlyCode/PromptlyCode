@@ -68,12 +68,22 @@
       }
     ],
     "configuration": {
-      "title": "OpenAI Helper",
+      "title": "PromptlyCode Configuration",
       "properties": {
-        "openaiHelper.apiKey": {
+        "promptlyCode.apiKey": {
           "type": "string",
           "default": "",
-          "description": "Your OpenAI API key"
+          "description": "Your PromptlyCode LLM API key"
+        },
+        "promptlyCode.apiUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Your PromptlyCode LLM API url"
+        },
+        "promptlyCode.apiModel": {
+          "type": "string",
+          "default": "",
+          "description": "Your PromptlyCode LLM API Model"
         },
         "pythonFunctionSuggestions.enable": {
           "type": "boolean",

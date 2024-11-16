@@ -208,6 +208,7 @@ export async function showSettingsWebview(context: vscode.ExtensionContext): Pro
             vscode.window.showInformationMessage('Settings saved successfully!');
             panel.dispose();
           } catch (error) {
+            // console.log(error) // Fixed: CodeExpectedError: Unable to write to User Settings because promptlyCode.apiKey is not a registered configuration.
             vscode.window.showErrorMessage('Failed to save settings');
           }
           break;
