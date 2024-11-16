@@ -77,12 +77,12 @@
         },
         "promptlyCode.apiUrl": {
           "type": "string",
-          "default": "",
+          "default": "https://openrouter.ai/api",
           "description": "Your PromptlyCode LLM API url"
         },
         "promptlyCode.apiModel": {
           "type": "string",
-          "default": "",
+          "default": "anthropic/claude-3.5-sonnet",
           "description": "Your PromptlyCode LLM API Model"
         },
         "pythonFunctionSuggestions.enable": {
