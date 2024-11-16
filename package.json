@@ -25,33 +25,33 @@
   "contributes": {
     "commands": [
       {
-        "command": "promptly-code.askOpenAI",
-        "title": "Ask OpenAI about selected code"
+        "command": "promptlyCode.askOpenAI",
+        "title": "Ask PromptlyCode about selected code & modification"
       },
       {
-        "command": "promptly-code.openChat",
-        "title": "Chat OpenAI about code"
+        "command": "promptlyCode.openChat",
+        "title": "Chat PromptlyCode about code"
       },
       {
         "command": "extension.showGraphVisualization",
-        "title": "Show Graph Visualization"
+        "title": "PromptlyCode Show Graph Visualization"
       }
     ],
     "keybindings": [
       {
-        "command": "promptly-code.askOpenAI",
+        "command": "promptlyCode.askOpenAI",
         "key": "ctrl+k",
         "linux": "ctrl+k",
         "when": "editorHasSelection"
       },
       {
-        "command": "promptly-code.askOpenAI",
+        "command": "promptlyCode.askOpenAI",
         "key": "cmd+k",
         "mac": "cmd+k",
         "when": "editorHasSelection"
       },
       {
-        "command": "promptly-code.openChat",
+        "command": "promptlyCode.openChat",
         "key": "cmd+l",
         "mac": "cmd+l",
         "when": "editorTextFocus"

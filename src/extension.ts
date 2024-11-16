@@ -48,7 +48,7 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
                 margin-bottom: 5px;
                 color: var(--vscode-input-foreground);
             }
-            input[type="text"], 
+            input[type="text"],
             input[type="password"] {
                 width: 100%;
                 padding: 8px;
@@ -90,7 +90,7 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
                 <div class="hint">Your API key should start with 'sk-or-'</div>
                 <div class="error" id="apiKeyError">Invalid API key format</div>
             </div>
-            
+
             <div class="form-group">
                 <label for="apiUrl">API URL</label>
                 <input type="text" style="background:#e5ebf1;" id="apiUrl" name="apiUrl" value="${currentConfig.apiUrl}" required>
@@ -147,7 +147,7 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
 
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                
+
                 const apiKey = apiKeyInput.value;
                 const apiUrl = apiUrlInput.value;
                 const apiModel = apiModelInput.value.trim();
@@ -257,20 +257,20 @@ export function activate(context: vscode.ExtensionContext) {
     let disposable0 = vscode.commands.registerCommand('promptlyCode.openSettings', () => {
       showSettingsWebview(context);
     });
-  
+
     context.subscriptions.push(disposable0);
-  
+
     // Check if API key is configured
     const config = vscode.workspace.getConfiguration('promptlyCode');
     const apiKey = config.get<string>('apiKey');
-    
+
     if (!apiKey) {
       showSettingsWebview(context);
-    }  
+    }
   //
 
   let disposable = vscode.commands.registerCommand(
-    "promptly-code.askOpenAI",
+    "promptlyCode.askOpenAI",
     async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -353,7 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
   let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
   let disposable2 = vscode.commands.registerCommand(
-    "promptly-code.startChat",
+    "promptlyCode.startChat",
     () => {
       if (currentPanel) {
         currentPanel.reveal(vscode.ViewColumn.Two);
@@ -480,7 +480,7 @@ export function activate(context: vscode.ExtensionContext) {
   //
   // Register the chat command (cmd+l)
   let openChat = vscode.commands.registerCommand(
-    "promptly-code.openChat",
+    "promptlyCode.openChat",
     () => {
       const config = vscode.workspace.getConfiguration("openaiHelper");
       let apiKey = config.get<string>("apiKey");
