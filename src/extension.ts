@@ -21,8 +21,8 @@ interface PromptlyCodeConfig {
 
 const DEFAULT_CONFIG: PromptlyCodeConfig = {
   apiKey: '',
-  apiUrl: 'https://api.openrouter.ai',
-  apiModel: 'anthropic/claude-3-opus-20240229',
+  apiUrl: 'https://openrouter.ai/api',
+  apiModel: 'anthropic/claude-3.5-sonnet',
 };
 
 export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): string {
@@ -86,22 +86,22 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
         <form id="settingsForm">
             <div class="form-group">
                 <label for="apiKey">OpenRouter API Key</label>
-                <input type="password" id="apiKey" name="apiKey" value="${currentConfig.apiKey}" required>
+                <input type="password" style="background:#e5ebf1;" id="apiKey" name="apiKey" value="${currentConfig.apiKey}" required>
                 <div class="hint">Your API key should start with 'sk-or-'</div>
                 <div class="error" id="apiKeyError">Invalid API key format</div>
             </div>
             
             <div class="form-group">
                 <label for="apiUrl">API URL</label>
-                <input type="text" id="apiUrl" name="apiUrl" value="${currentConfig.apiUrl}" required>
-                <div class="hint">Default: https://api.openrouter.ai</div>
+                <input type="text" style="background:#e5ebf1;" id="apiUrl" name="apiUrl" value="${currentConfig.apiUrl}" required>
+                <div class="hint">Default: https://openrouter.ai/api</div>
                 <div class="error" id="apiUrlError">Please enter a valid URL</div>
             </div>
 
             <div class="form-group">
                 <label for="apiModel">AI Model</label>
-                <input type="text" id="apiModel" name="apiModel" value="${currentConfig.apiModel}" required>
-                <div class="hint">Example: anthropic/claude-3-opus-20240229, google/gemini-pro</div>
+                <input type="text" style="background:#e5ebf1;" id="apiModel" name="apiModel" value="${currentConfig.apiModel}" required>
+                <div class="hint">Example: anthropic/claude-3.5-sonnet, openai/gpt-4o-2024-08-06</div>
             </div>
 
             <button type="submit">Save Settings</button>
@@ -227,17 +227,17 @@ const packageJsonConfig = {
         "promptlyCode.apiKey": {
           "type": "string",
           "default": "",
-          "description": "OpenRouter API key"
+          "description": "LLM API key"
         },
         "promptlyCode.apiUrl": {
           "type": "string",
-          "default": "https://api.openrouter.ai",
-          "description": "API endpoint URL"
+          "default": "https://openrouter.ai/api",
+          "description": "LLM API endpoint URL"
         },
         "promptlyCode.apiModel": {
           "type": "string",
-          "default": "anthropic/claude-3-opus-20240229",
-          "description": "AI model identifier (e.g., anthropic/claude-3-opus-20240229)"
+          "default": "anthropic/claude-3.5-sonnet",
+          "description": "LLM AI model identifier (e.g., anthropic/claude-3.5-sonnet, openai/gpt-4o-2024-08-06)"
         }
       }
     },
