@@ -45,24 +45,18 @@
       {
         "command": "promptlyCode.askOpenAI",
         "key": "ctrl+k",
-        "linux": "ctrl+k",
-        "when": "editorHasSelection"
-      },
-      {
-        "command": "promptlyCode.askOpenAI",
-        "key": "cmd+k",
         "mac": "cmd+k",
         "when": "editorHasSelection"
       },
       {
-        "command": "promptlyCode.openChat",
-        "key": "cmd+l",
+        "command": "promptlyCode.openChat", 
+        "key": "ctrl+l",
         "mac": "cmd+l",
         "when": "editorTextFocus"
       },
       {
         "command": "extension.showGraphVisualization",
-        "key": "cmd+e",
+        "key": "ctrl+e",
         "mac": "cmd+e",
         "when": "editorTextFocus"
       }
