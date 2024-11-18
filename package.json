@@ -16,7 +16,9 @@
     "Other",
     "Programming Languages"
   ],
-  "activationEvents": ["onLanguage:python"],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
   "main": "./dist/extension.js",
   "repository": {
     "type": "git",
@@ -49,7 +51,7 @@
         "when": "editorHasSelection"
       },
       {
-        "command": "promptlyCode.openChat", 
+        "command": "promptlyCode.openChat",
         "key": "ctrl+l",
         "mac": "cmd+l"
       },
@@ -98,6 +100,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.13",
     "@types/mocha": "^10.0.9",
     "@types/node": "20.x",
     "@types/vscode": "^1.95.0",
@@ -112,6 +115,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "axios": "^1.7.7"
+    "axios": "^1.7.7",
+    "lodash": "^4.17.21"
   }
 }

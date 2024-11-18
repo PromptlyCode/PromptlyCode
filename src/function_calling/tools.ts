@@ -5,6 +5,8 @@ import { getWebviewContent } from "../codeChat";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "../config";
+import { join } from 'path';
+import { escapeRegExp } from 'lodash';
 
 // Webview panel for chat
 // let chatPanel: vscode.WebviewPanel | undefined = undefined;
@@ -343,29 +345,102 @@ async function writeFile(filePath: string, content: string): Promise<string> {
   }
 }
 
-async function searchCode(searchTerm: string): Promise<string> {
+interface SearchResult {
+  success: boolean;
+  results: string;
+  error?: string;
+}
+
+async function checkCommandExists(command: string): Promise<boolean> {
+  const execAsync = promisify(exec);
+  try {
+    const checkCommand = process.platform === 'win32' 
+      ? `where ${command}`  // Windows
+      : `which ${command}`; // Unix-like systems
+    
+    await execAsync(checkCommand);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function validateWorkspace(): Promise<string> {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  
+  if (!workspaceFolders || workspaceFolders.length === 0) {
+    vscode.window.showErrorMessage('Please open a folder or workspace before searching');
+    throw new Error('No workspace folder found. Please open a folder first.');
+  }
+
+  return workspaceFolders[0].uri.fsPath;
+}
+
+async function searchCode(searchTerm: string): Promise<SearchResult> {
   const execAsync = promisify(exec);
 
   try {
-    const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-    if (!workspacePath) {
-      throw new Error("No workspace folder found");
+    const workspacePath = await validateWorkspace();
+
+    if (!searchTerm?.trim()) {
+      return {
+        success: false,
+        results: '',
+        error: 'Search term cannot be empty'
+      };
     }
 
-    // Execute ag command and capture output
-    const { stdout, stderr } = await execAsync(
-      `ag "${searchTerm}" ${workspacePath}`
-    );
+    // Escape special characters in search term
+    const sanitizedTerm = escapeRegExp(searchTerm);
+    const normalizedPath = join(workspacePath);
+
+    // Check if ag is available, otherwise use grep
+    const hasAg = await checkCommandExists('ag');
+    const searchCommand = hasAg
+      ? `ag --nocolor --nogroup "${sanitizedTerm}" "${normalizedPath}"`
+      : process.platform === 'win32'
+        ? `findstr /s /n /i /c:"${sanitizedTerm}" "${normalizedPath}\\*.*"`  // Windows findstr
+        : `grep -r -n "${sanitizedTerm}" "${normalizedPath}"`;              // Unix grep
+
+    console.log(`Using search command: ${searchCommand}`);
+
+    const { stdout, stderr } = await execAsync(searchCommand, {
+      maxBuffer: 1024 * 1024 * 5, // 5MB buffer
+      timeout: 30000, // 30 second timeout
+      cwd: normalizedPath
+    });
 
     if (stderr) {
-      console.warn("Search warning:", stderr);
+      console.warn('Search warning:', stderr);
     }
 
-    return stdout || "No results found";
+    return {
+      success: true,
+      results: stdout || 'No results found'
+    };
+
   } catch (error) {
-    // if (error.code === 1 && !error.stdout) {
-    //   return "No matches found";
-    // }
-    throw new Error(`Search failed: ${error}`);
+    console.error('Search error:', error);
+
+    // Handle specific exit codes for both ag and grep
+    if (error instanceof Error && 'code' in error) {
+      const execError = error as { code: number };
+      // Both ag and grep return 1 when no matches are found
+      if (execError.code === 1) {
+        return {
+          success: true,
+          results: 'No matches found'
+        };
+      }
+    }
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    vscode.window.showErrorMessage(`Search failed: ${errorMessage}`);
+
+    return {
+      success: false,
+      results: '',
+      error: `Search failed: ${errorMessage}`
+    };
   }
 }
