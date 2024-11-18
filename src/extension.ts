@@ -85,7 +85,7 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
         <h2>PromptlyCode Configuration</h2>
         <form id="settingsForm">
             <div class="form-group">
-                <label for="apiKey">OpenRouter API Key</label>
+                <label for="apiKey">LLM API Key</label>
                 <input type="password" style="background:#e5ebf1;" id="apiKey" name="apiKey" value="${currentConfig.apiKey}" required>
                 <div class="hint">Your API key should start with 'sk-or-'</div>
                 <div class="error" id="apiKeyError">Invalid API key format</div>
