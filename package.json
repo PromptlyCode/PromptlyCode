@@ -51,8 +51,7 @@
       {
         "command": "promptlyCode.openChat", 
         "key": "ctrl+l",
-        "mac": "cmd+l",
-        "when": "editorTextFocus"
+        "mac": "cmd+l"
       },
       {
         "command": "extension.showGraphVisualization",
