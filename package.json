@@ -115,6 +115,8 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@lancedb/lancedb": "^0.13.0",
+    "apache-arrow": "^18.0.0",
     "axios": "^1.7.7",
     "lodash": "^4.17.21"
   }
