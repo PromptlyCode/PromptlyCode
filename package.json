@@ -94,6 +94,21 @@
           "default": "anthropic/claude-3.5-sonnet",
           "description": "Your PromptlyCode LLM API Model"
         },
+        "codescanner.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API Key"
+        },
+        "codescanner.excludePatterns": {
+          "type": "array",
+          "default": ["node_modules", ".git"],
+          "description": "Patterns to exclude from scanning"
+        },
+        "codescanner.maxFileSizeBytes": {
+          "type": "number",
+          "default": 1000000,
+          "description": "Maximum file size in bytes"
+        },
         "pythonFunctionSuggestions.enable": {
           "type": "boolean",
           "default": true,
