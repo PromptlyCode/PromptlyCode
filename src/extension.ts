@@ -8,6 +8,15 @@ import { createChatPanel } from "./function_calling/tools";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "./config";
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import * as lancedb from "@lancedb/lancedb";
+import "@lancedb/lancedb/embedding/openai";
+import { LanceSchema, getRegistry } from "@lancedb/lancedb/embedding";
+import { EmbeddingFunction } from "@lancedb/lancedb/embedding";
+import { Utf8 } from "apache-arrow";
+
+import { getResultsHtml, scanDirectory, CodeScannerConfig } from "./embedding/index";
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -252,7 +261,7 @@ const packageJsonConfig = {
 };
 //
 
-export function activate(context: vscode.ExtensionContext) {
+export  function activate(context: vscode.ExtensionContext) {
   //
     // Register settings command
     let disposable0 = vscode.commands.registerCommand('promptlyCode.openSettings', () => {
@@ -492,6 +501,114 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(openChat);
+
+  // ----
+  const dbPath = path.join(context.globalStoragePath, 'codedb');
+  console.log(`----dbPath ${dbPath}-----`);
+  fs.mkdir(dbPath, { recursive: true });
+
+  let disposable5 = vscode.commands.registerCommand('codescanner.scanProject', async () => {
+      try {
+
+          console.log("codescanner.scanProject ======= ")
+          const config = vscode.workspace.getConfiguration('codescanner');
+          const settings: CodeScannerConfig = {
+              openaiApiKey: config.get('openaiApiKey', ''),
+              excludePatterns: config.get('excludePatterns', ['node_modules', '.git']),
+              maxFileSizeBytes: config.get('maxFileSizeBytes', 1000000)
+          };
+
+          if (!settings.openaiApiKey) {
+              throw new Error('OpenAI API key not configured');
+          }
+
+          // Initialize LanceDB
+          const db = await lancedb.connect(dbPath);
+          const func = getRegistry()
+              .get("openai")
+              ?.create({ 
+                  model: "text-embedding-ada-002",
+                  apiKey: settings.openaiApiKey 
+              }) as EmbeddingFunction;
+
+          // Define schema
+          const codeSchema = LanceSchema({
+              filePath: new Utf8(),
+              content: func.sourceField(new Utf8()),
+              language: new Utf8(),
+              vector: func.vectorField(),
+          });
+
+          // Create or get table
+          const table = await db.createEmptyTable("code_vectors", codeSchema, {
+              mode: "overwrite"
+          });
+
+          // Get workspace folders
+          const workspaceFolders = vscode.workspace.workspaceFolders;
+          if (!workspaceFolders) {
+              throw new Error('No workspace folder open');
+          }
+          
+          await vscode.window.withProgress({
+              location: vscode.ProgressLocation.Notification,
+              title: "Scanning project files",
+              cancellable: true
+          }, async (progress, token) => {
+              // Scan files recursively
+              for (const folder of workspaceFolders) {
+                  await scanDirectory(folder.uri.fsPath, table, settings, progress, token);
+              }
+          });
+
+          vscode.window.showInformationMessage('Project scan completed successfully!');
+
+      } catch (error) {
+          vscode.window.showErrorMessage(`Error scanning project: {error.message}`);
+      }
+  });
+
+  context.subscriptions.push(disposable5);
+
+  // Register search command
+  let searchDisposable = vscode.commands.registerCommand('codescanner.searchCode', async () => {
+      try {
+          const query = await vscode.window.showInputBox({
+              prompt: "Enter search query",
+              placeHolder: "Search code..."
+          });
+
+          if (!query) return;
+
+          const db = await lancedb.connect(dbPath);
+          const table = await db.openTable("code_vectors");
+          
+          // Show progress during search
+          const results = await vscode.window.withProgress({
+              location: vscode.ProgressLocation.Notification,
+              title: "Searching code...",
+              cancellable: false
+          }, async () => {
+              return await table.search(query).limit(5).toArray();
+          });
+          
+          // Create and show results in a new webview
+          const panel = vscode.window.createWebviewPanel(
+              'searchResults',
+              'Code Search Results',
+              vscode.ViewColumn.One,
+              {}
+          );
+
+          panel.webview.html = getResultsHtml(results);
+
+      } catch (error) {
+          vscode.window.showErrorMessage(`Error searching: {error.message}`);
+      }
+  });
+
+  context.subscriptions.push(searchDisposable);
+  // ---
 }
 
 function extractCodeFromResponse(response: string): string {

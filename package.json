@@ -41,9 +41,23 @@
       {
         "command": "promptlyCode.openSettings",
         "title": "PromptlyCode Settings"
+      },
+      {
+        "command": "codescanner.scanProject",
+        "title": "codescanner scanProject"
+      },
+      {
+        "command": "codescanner.searchCode",
+        "title": "codescanner searchCode"
       }
     ],
     "keybindings": [
+      {
+        "command": "codescanner.scanProject",
+        "key": "ctrl+y",
+        "mac": "cmd+y",
+        "when": "editorHasSelection"
+      },
       {
         "command": "promptlyCode.askOpenAI",
         "key": "ctrl+k",
@@ -115,6 +129,8 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@lancedb/lancedb": "^0.13.0",
+    "apache-arrow": "^18.0.0",
     "axios": "^1.7.7",
     "lodash": "^4.17.21"
   }
