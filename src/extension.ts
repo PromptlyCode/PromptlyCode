@@ -505,15 +505,16 @@ export  function activate(context: vscode.ExtensionContext) {
   // ----
   const dbPath = path.join(context.globalStoragePath, 'codedb');
   console.log(`----dbPath ${dbPath}-----`);
+  // ----dbPath /Users/clojure/Library/Application Support/Code/User/globalStorage/promptlycode.promptlycode/codedb-----
   fs.mkdir(dbPath, { recursive: true });
 
   let disposable5 = vscode.commands.registerCommand('codescanner.scanProject', async () => {
       try {
 
-          console.log("codescanner.scanProject ======= ")
+          console.log("codescanner.scanProject ======= ");
           const config = vscode.workspace.getConfiguration('codescanner');
           const settings: CodeScannerConfig = {
-              openaiApiKey: config.get('openaiApiKey', ''),
+              openaiApiKey: '=======xxx', //config.get('openaiApiKey', ''),
               excludePatterns: config.get('excludePatterns', ['node_modules', '.git']),
               maxFileSizeBytes: config.get('maxFileSizeBytes', 1000000)
           };
@@ -564,6 +565,8 @@ export  function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage('Project scan completed successfully!');
 
       } catch (error) {
+          console.log("========== Error scanning project ======== ");
+          console.log(error);
           vscode.window.showErrorMessage(`Error scanning project: {error.message}`);
       }
   });
@@ -603,6 +606,7 @@ export  function activate(context: vscode.ExtensionContext) {
           panel.webview.html = getResultsHtml(results);
 
       } catch (error) {
+          console.log(error);
           vscode.window.showErrorMessage(`Error searching: {error.message}`);
       }
   });
