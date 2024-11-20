@@ -41,6 +41,14 @@
       {
         "command": "promptlyCode.openSettings",
         "title": "PromptlyCode Settings"
+      },
+      {
+        "command": "vscode-rag-search.build",
+        "title": "RAG Search: Build Index"
+      },
+      {
+        "command": "vscode-rag-search.search",
+        "title": "RAG Search: Search Code"
       }
     ],
     "keybindings": [

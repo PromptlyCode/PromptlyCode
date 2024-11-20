@@ -20,12 +20,14 @@ interface PromptlyCodeConfig {
 }
 
 const DEFAULT_CONFIG: PromptlyCodeConfig = {
-  apiKey: '',
-  apiUrl: 'https://openrouter.ai/api',
-  apiModel: 'anthropic/claude-3.5-sonnet',
+  apiKey: "",
+  apiUrl: "https://openrouter.ai/api",
+  apiModel: "anthropic/claude-3.5-sonnet",
 };
 
-export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): string {
+export function getSettingsWebviewContent(
+  currentConfig: PromptlyCodeConfig
+): string {
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -178,38 +180,42 @@ export function getSettingsWebviewContent(currentConfig: PromptlyCodeConfig): st
     </html>`;
 }
 
-export async function showSettingsWebview(context: vscode.ExtensionContext): Promise<void> {
+export async function showSettingsWebview(
+  context: vscode.ExtensionContext
+): Promise<void> {
   const panel = vscode.window.createWebviewPanel(
-    'promptlyCodeSettings',
-    'PromptlyCode Settings',
+    "promptlyCodeSettings",
+    "PromptlyCode Settings",
     vscode.ViewColumn.One,
     {
-      enableScripts: true
+      enableScripts: true,
     }
   );
 
-  const config = vscode.workspace.getConfiguration('promptlyCode');
+  const config = vscode.workspace.getConfiguration("promptlyCode");
   const currentConfig: PromptlyCodeConfig = {
-    apiKey: config.get('apiKey', DEFAULT_CONFIG.apiKey),
-    apiUrl: config.get('apiUrl', DEFAULT_CONFIG.apiUrl),
-    apiModel: config.get('apiModel', DEFAULT_CONFIG.apiModel)
+    apiKey: config.get("apiKey", DEFAULT_CONFIG.apiKey),
+    apiUrl: config.get("apiUrl", DEFAULT_CONFIG.apiUrl),
+    apiModel: config.get("apiModel", DEFAULT_CONFIG.apiModel),
   };
 
   panel.webview.html = getSettingsWebviewContent(currentConfig);
 
   panel.webview.onDidReceiveMessage(
-    async message => {
+    async (message) => {
       switch (message.command) {
-        case 'saveSettings':
+        case "saveSettings":
           try {
-            await config.update('apiKey', message.apiKey, true);
-            await config.update('apiUrl', message.apiUrl, true);
-            await config.update('apiModel', message.apiModel, true);
-            vscode.window.showInformationMessage('Settings saved successfully!');
+            await config.update("apiKey", message.apiKey, true);
+            await config.update("apiUrl", message.apiUrl, true);
+            await config.update("apiModel", message.apiModel, true);
+            vscode.window.showInformationMessage(
+              "Settings saved successfully!"
+            );
             panel.dispose();
           } catch (error) {
             // console.log(error) // Fixed: CodeExpectedError: Unable to write to User Settings because promptlyCode.apiKey is not a registered configuration.
-            vscode.window.showErrorMessage('Failed to save settings');
+            vscode.window.showErrorMessage("Failed to save settings");
           }
           break;
       }
@@ -221,53 +227,57 @@ export async function showSettingsWebview(context: vscode.ExtensionContext): Pro
 
 // Package.json configuration
 const packageJsonConfig = {
-  "contributes": {
-    "configuration": {
-      "title": "PromptlyCode",
-      "properties": {
+  contributes: {
+    configuration: {
+      title: "PromptlyCode",
+      properties: {
         "promptlyCode.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "LLM API key"
+          type: "string",
+          default: "",
+          description: "LLM API key",
         },
         "promptlyCode.apiUrl": {
-          "type": "string",
-          "default": "https://openrouter.ai/api",
-          "description": "LLM API endpoint URL"
+          type: "string",
+          default: "https://openrouter.ai/api",
+          description: "LLM API endpoint URL",
         },
         "promptlyCode.apiModel": {
-          "type": "string",
-          "default": "anthropic/claude-3.5-sonnet",
-          "description": "LLM AI model identifier (e.g., anthropic/claude-3.5-sonnet, openai/gpt-4o-2024-08-06)"
-        }
-      }
+          type: "string",
+          default: "anthropic/claude-3.5-sonnet",
+          description:
+            "LLM AI model identifier (e.g., anthropic/claude-3.5-sonnet, openai/gpt-4o-2024-08-06)",
+        },
+      },
     },
-    "commands": [
+    commands: [
       {
-        "command": "promptlyCode.openSettings",
-        "title": "Open PromptlyCode Settings"
-      }
-    ]
-  }
+        command: "promptlyCode.openSettings",
+        title: "Open PromptlyCode Settings",
+      },
+    ],
+  },
 };
 //
 
 export function activate(context: vscode.ExtensionContext) {
   //
-    // Register settings command
-    let disposable0 = vscode.commands.registerCommand('promptlyCode.openSettings', () => {
-      showSettingsWebview(context);
-    });
-
-    context.subscriptions.push(disposable0);
-
-    // Check if API key is configured
-    const config = vscode.workspace.getConfiguration('promptlyCode');
-    const apiKey = config.get<string>('apiKey');
-
-    if (!apiKey) {
+  // Register settings command
+  let disposable0 = vscode.commands.registerCommand(
+    "promptlyCode.openSettings",
+    () => {
       showSettingsWebview(context);
     }
+  );
+
+  context.subscriptions.push(disposable0);
+
+  // Check if API key is configured
+  const config = vscode.workspace.getConfiguration("promptlyCode");
+  const apiKey = config.get<string>("apiKey");
+
+  if (!apiKey) {
+    showSettingsWebview(context);
+  }
   //
 
   let disposable = vscode.commands.registerCommand(
@@ -291,8 +301,8 @@ export function activate(context: vscode.ExtensionContext) {
       // Get the API key from settings
       const config = vscode.workspace.getConfiguration("promptlyCode");
       let apiKey = config.get<string>("apiKey");
-      const apiModel = config.get<string>('apiModel');
-      const apiUrl = config.get<string>('apiUrl');
+      const apiModel = config.get<string>("apiModel");
+      const apiUrl = config.get<string>("apiUrl");
 
       // Show input box for the question: TODO: addr
       const question = await vscode.window.showInputBox({
@@ -313,7 +323,14 @@ export function activate(context: vscode.ExtensionContext) {
         },
         async (progress) => {
           try {
-            const newCode = await askAI(apiKey!, apiModel!, apiUrl!, question, selectedCode, languageId);
+            const newCode = await askAI(
+              apiKey!,
+              apiModel!,
+              apiUrl!,
+              question,
+              selectedCode,
+              languageId
+            );
 
             // Replace the selected text with the new code
             await editor.edit((editBuilder) => {
@@ -373,8 +390,8 @@ export function activate(context: vscode.ExtensionContext) {
                   const config =
                     vscode.workspace.getConfiguration("promptlyCode");
                   let apiKey = config.get<string>("apiKey");
-                  const apiModel = config.get<string>('apiModel');
-                  const apiUrl = config.get<string>('apiUrl');
+                  const apiModel = config.get<string>("apiModel");
+                  const apiUrl = config.get<string>("apiUrl");
                   const response = await axios.post(
                     `${apiUrl}/v1/chat/completions`,
                     {
@@ -472,7 +489,6 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-
   //
   // Register the chat command (cmd+l)
   let openChat = vscode.commands.registerCommand(
@@ -480,18 +496,124 @@ export function activate(context: vscode.ExtensionContext) {
     () => {
       const config = vscode.workspace.getConfiguration("promptlyCode");
       const apiKey = config.get<string>("apiKey");
-      const apiModel = config.get<string>('apiModel');
-      const apiUrl = config.get<string>('apiUrl');
+      const apiModel = config.get<string>("apiModel");
+      const apiUrl = config.get<string>("apiUrl");
 
       if (currentPanel) {
         currentPanel.reveal(vscode.ViewColumn.Two);
       } else {
-        createChatPanel(currentPanel, context, `${apiKey}`, `${apiModel}`, `${apiUrl}`);
+        createChatPanel(
+          currentPanel,
+          context,
+          `${apiKey}`,
+          `${apiModel}`,
+          `${apiUrl}`
+        );
       }
     }
   );
 
   context.subscriptions.push(openChat);
+
+  // rag
+  // Create output channel
+  // TODO: rust rewrite it
+  const pyenv = "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ";
+
+  const outputChannel = vscode.window.createOutputChannel("RAG Search");
+
+  // Register build command
+  let buildDisposable = vscode.commands.registerCommand(
+    "vscode-rag-search.build",
+    async () => {
+      try {
+        // Get workspace folder path
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+          throw new Error("No workspace folder open");
+        }
+        const path = workspaceFolders[0].uri.fsPath;
+
+        // Show progress indicator
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Building RAG index...",
+            cancellable: false,
+          },
+          async () => {
+            // Execute build command
+            const { stdout, stderr } = await execAsync(
+              `${pyenv} python rag_search_code.py build "${path}"`
+            );
+
+            if (stderr) {
+              throw new Error(stderr);
+            }
+
+            // Show output
+            outputChannel.show(true);
+            outputChannel.appendLine("Build Results:");
+            outputChannel.appendLine(stdout);
+
+            vscode.window.showInformationMessage(
+              "RAG index built successfully!"
+            );
+          }
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(`Failed to build RAG index: ${error}`);
+      }
+    }
+  );
+
+  // Register search command
+  let searchDisposable = vscode.commands.registerCommand(
+    "vscode-rag-search.search",
+    async () => {
+      try {
+        // Get search query from user
+        const query = await vscode.window.showInputBox({
+          placeHolder: "Enter search query",
+          prompt: "Search codebase using RAG",
+        });
+
+        if (!query) {
+          return;
+        }
+
+        // Show progress indicator
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Searching...",
+            cancellable: false,
+          },
+          async () => {
+            // Execute search command
+            const { stdout, stderr } = await execAsync(
+              `${pyenv} python rag_search_code.py search "${query}"`
+            );
+
+            if (stderr) {
+              throw new Error(stderr);
+            }
+
+            // Show results in output channel
+            outputChannel.show(true);
+            outputChannel.appendLine(`\nSearch Results for: ${query}`);
+            outputChannel.appendLine(stdout);
+          }
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(`Search failed: ${error}`);
+      }
+    }
+  );
+
+  context.subscriptions.push(buildDisposable, searchDisposable);
+
+  //
 }
 
 function extractCodeFromResponse(response: string): string {
