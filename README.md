@@ -14,10 +14,8 @@
 - [x] View the graphviz diagram of the function relationship
 - [x] AI reads local files, writes files, obtains file status, etc. 
 - [x] Support RAG code search by ollama nomic-embed-text: https://github.com/PromptlyCode/rag-code-sorting-search  `rag_search_code.py build path & rag_search_code.py search 'query'`
-- [ ] AI automatic environment construction and repair, ReAct mechanism: https://github.com/PromptlyCode/ai-automatic-env-build
-- [ ] Chat question project, chat to achieve code search question
-- [ ] Tab automatically complete code and predict code
-- [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction
+- [ ] Tab automatically complete code and predict code use vscode inline completion
+- [ ] Multi-agent technology encapsulates a Docker automatic environment verification,and uses ReAct for environment feedback and error correction, and AI automatic environment construction and repair: https://github.com/PromptlyCode/ai-automatic-env-build
 - [ ] Support voice wake-up interactive programming
 - [ ] Support rapid prototyping verification POC AI programming
 
