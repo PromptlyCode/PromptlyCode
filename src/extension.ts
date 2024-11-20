@@ -162,7 +162,7 @@ export function getSettingsWebviewContent(
                 const apiKey = apiKeyInput.value;
                 const apiUrl = apiUrlInput.value;
                 const apiModel = apiModelInput.value.trim();
-                const ragPyEnv = ragPyEnvInput.value;
+                const ragPyEnv = ragPyEnvInput.value.trim();
 
 
                 if (!validateApiKey(apiKey)) {
