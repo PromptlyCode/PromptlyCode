@@ -351,6 +351,7 @@ interface SearchResult {
   error?: string;
 }
 
+
 async function checkCommandExists(command: string): Promise<boolean> {
   const execAsync = promisify(exec);
   try {
@@ -376,7 +377,73 @@ async function validateWorkspace(): Promise<string> {
   return workspaceFolders[0].uri.fsPath;
 }
 
+const pyenv = "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ";
+
 async function searchCode(searchTerm: string): Promise<SearchResult> {
+  const execAsync = promisify(exec);
+
+  try {
+    const workspacePath = await validateWorkspace();
+
+    if (!searchTerm?.trim()) {
+      return {
+        success: false,
+        results: '',
+        error: 'Search term cannot be empty'
+      };
+    }
+    
+    // Sanitize inputs
+    const sanitizedQuery = searchTerm.replace(/"/g, '\\"');
+    
+    // Get workspace folder path
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+      throw new Error("No workspace folder open");
+    }
+    const path = workspaceFolders[0].uri.fsPath;
+
+    const searchCommand = `${pyenv} python rag_search_code.py search "${path}" "${sanitizedQuery}"`;
+    console.log(`Executing RAG search command: ${searchCommand}`);
+
+    const { stdout, stderr } = await execAsync(searchCommand, {
+      maxBuffer: 1024 * 1024 * 10, // 10MB buffer for larger RAG results
+      timeout: 60000 // 60 second timeout for RAG processing
+      //cwd: workspacePath
+    });
+
+    if (stderr) {
+      console.warn('RAG search warning:', stderr);
+    }
+
+    // Check if stdout is empty or invalid
+    if (!stdout || stdout.trim().length === 0) {
+      return {
+        success: true,
+        results: 'No results found'
+      };
+    }
+
+    return {
+      success: true,
+      results: stdout
+    };
+
+  } catch (error) {
+    console.error('RAG search error:', error);
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    vscode.window.showErrorMessage(`RAG search failed: ${errorMessage}`);
+
+    return {
+      success: false,
+      results: '',
+      error: `RAG search failed: ${errorMessage}`
+    };
+  }
+}
+
+async function searchAgCode(searchTerm: string): Promise<SearchResult> {
   const execAsync = promisify(exec);
 
   try {
