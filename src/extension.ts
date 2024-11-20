@@ -572,6 +572,13 @@ export function activate(context: vscode.ExtensionContext) {
     "vscode-rag-search.search",
     async () => {
       try {
+
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+          throw new Error("No workspace folder open");
+        }
+        const path = workspaceFolders[0].uri.fsPath;
+
         // Get search query from user
         const query = await vscode.window.showInputBox({
           placeHolder: "Enter search query",
@@ -592,7 +599,7 @@ export function activate(context: vscode.ExtensionContext) {
           async () => {
             // Execute search command
             const { stdout, stderr } = await execAsync(
-              `${pyenv} python rag_search_code.py search "${query}"`
+              `${pyenv} python rag_search_code.py search "${path}" "${query}"`
             );
 
             if (stderr) {
