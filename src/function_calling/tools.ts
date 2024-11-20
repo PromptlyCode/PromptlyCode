@@ -157,7 +157,7 @@ async function handleChatMessage(
         type: "function",
         function: {
           name: "search_code",
-          description: "Search code using silver searcher (ag)",
+          description: "Search code using Retrieval-Augmented Generation",
           parameters: {
             type: "object",
             properties: {
