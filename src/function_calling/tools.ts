@@ -102,7 +102,7 @@ export function createChatPanel(
   );
 }
 
-async function handleChatMessage(
+export async function handleChatMessage(
   message: string,
   apiKey: string,
   model: string,

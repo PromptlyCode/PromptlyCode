@@ -49,9 +49,19 @@
       {
         "command": "promptlyCode.ragSearchCode",
         "title": "PromptlyCode RAG Search: Search Code"
+      },
+      {
+        "command": "extension.openChat",
+        "title": "Open Chat Interface"
       }
     ],
     "keybindings": [
+      {
+        "command": "extension.openChat",
+        "key": "cmd+i",
+        "mac": "cmd+i",
+        "when": "editorTextFocus"
+      },
       {
         "command": "promptlyCode.askOpenAI",
         "key": "ctrl+k",

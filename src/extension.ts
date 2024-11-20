@@ -4,10 +4,11 @@ import axios from "axios";
 import { getWebviewContent } from "./codeChat";
 import { updateGraphVisualization } from "./parse_typescript/show_graph";
 import { completionItems } from "./tab_auto_complete/yasnippet";
-import { createChatPanel } from "./function_calling/tools";
+import { createChatPanel, handleChatMessage } from "./function_calling/tools";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "./config";
+import { ResizableQuickInput } from './poc/cmd_i';
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -643,6 +644,28 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(buildDisposable, searchDisposable);
 
+  //
+  let disposable3 = vscode.commands.registerCommand('extension.openChat', async () => {
+    const quickInput = new ResizableQuickInput();
+    
+    const input = await quickInput.show();
+    if (input) {
+        const config = vscode.workspace.getConfiguration('chatExtension');
+        const apiKey = config.get('apiKey') as string;
+        const model = config.get('model') as string;
+        const modelUrl = config.get('modelUrl') as string;
+
+        try {
+            await handleChatMessage(input, apiKey, model, modelUrl);
+        } catch (error) {
+            vscode.window.showErrorMessage(`Error: {error.message}`);
+        }
+    }
+    
+    quickInput.dispose();
+});
+
+context.subscriptions.push(disposable3);
   //
 }
 
