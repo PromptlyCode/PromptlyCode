@@ -163,7 +163,7 @@ export function getSettingsWebviewContent(
                 const apiUrl = apiUrlInput.value;
                 const apiModel = apiModelInput.value.trim();
                 const ragPyEnv = ragPyEnvInput.value;
-                
+
 
                 if (!validateApiKey(apiKey)) {
                     apiKeyError.style.display = 'block';
@@ -541,7 +541,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register build command
   let buildDisposable = vscode.commands.registerCommand(
-    "vscode-rag-search.build",
+    "promptlyCode.ragSearchBuild",
     async () => {
       try {
         // Get workspace folder path
@@ -589,7 +589,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register search command
   let searchDisposable = vscode.commands.registerCommand(
-    "vscode-rag-search.search",
+    "promptlyCode.ragSearchCode",
     async () => {
       try {
 

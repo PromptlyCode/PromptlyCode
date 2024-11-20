@@ -43,11 +43,11 @@
         "title": "PromptlyCode Settings"
       },
       {
-        "command": "vscode-rag-search.build",
+        "command": "promptlyCode.ragSearchBuild",
         "title": "RAG Search: Build Index"
       },
       {
-        "command": "vscode-rag-search.search",
+        "command": "promptlyCode.ragSearchCode",
         "title": "RAG Search: Search Code"
       }
     ],
