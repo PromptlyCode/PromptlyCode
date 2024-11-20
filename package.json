@@ -44,11 +44,11 @@
       },
       {
         "command": "promptlyCode.ragSearchBuild",
-        "title": "RAG Search: Build Index"
+        "title": "PromptlyCode RAG Search: Build Index"
       },
       {
         "command": "promptlyCode.ragSearchCode",
-        "title": "RAG Search: Search Code"
+        "title": "PromptlyCode RAG Search: Search Code"
       }
     ],
     "keybindings": [
