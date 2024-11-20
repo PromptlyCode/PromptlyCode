@@ -17,12 +17,14 @@ interface PromptlyCodeConfig {
   apiKey: string;
   apiUrl: string;
   apiModel: string;
+  ragPyEnv: string;
 }
 
 const DEFAULT_CONFIG: PromptlyCodeConfig = {
   apiKey: "",
   apiUrl: "https://openrouter.ai/api",
   apiModel: "anthropic/claude-3.5-sonnet",
+  ragPyEnv: "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run "
 };
 
 export function getSettingsWebviewContent(
@@ -106,6 +108,12 @@ export function getSettingsWebviewContent(
                 <div class="hint">Example: anthropic/claude-3.5-sonnet, openai/gpt-4o-2024-08-06</div>
             </div>
 
+            <div class="form-group">
+                <label for="ragPyEnv">RAG Configuration</label>
+                <input type="text" style="background:#e5ebf1;" id="ragPyEnv" name="ragPyEnv" value="${currentConfig.ragPyEnv}" required>
+                <div class="hint">If you need to configure rag, please check https://github.com/PromptlyCode/rag-code-sorting-search/</div>
+            </div>
+
             <button type="submit">Save Settings</button>
         </form>
 
@@ -115,6 +123,7 @@ export function getSettingsWebviewContent(
             const apiKeyInput = document.getElementById('apiKey');
             const apiUrlInput = document.getElementById('apiUrl');
             const apiModelInput = document.getElementById('apiModel');
+            const ragPyEnvInput = document.getElementById('ragPyEnv');
             const apiKeyError = document.getElementById('apiKeyError');
             const apiUrlError = document.getElementById('apiUrlError');
 
@@ -153,6 +162,8 @@ export function getSettingsWebviewContent(
                 const apiKey = apiKeyInput.value;
                 const apiUrl = apiUrlInput.value;
                 const apiModel = apiModelInput.value.trim();
+                const ragPyEnv = ragPyEnvInput.value;
+                
 
                 if (!validateApiKey(apiKey)) {
                     apiKeyError.style.display = 'block';
@@ -172,7 +183,8 @@ export function getSettingsWebviewContent(
                     command: 'saveSettings',
                     apiKey,
                     apiUrl,
-                    apiModel
+                    apiModel,
+                    ragPyEnv
                 });
             });
         </script>
@@ -197,6 +209,7 @@ export async function showSettingsWebview(
     apiKey: config.get("apiKey", DEFAULT_CONFIG.apiKey),
     apiUrl: config.get("apiUrl", DEFAULT_CONFIG.apiUrl),
     apiModel: config.get("apiModel", DEFAULT_CONFIG.apiModel),
+    ragPyEnv: config.get("ragPyEnv", DEFAULT_CONFIG.apiModel)
   };
 
   panel.webview.html = getSettingsWebviewContent(currentConfig);
@@ -209,6 +222,7 @@ export async function showSettingsWebview(
             await config.update("apiKey", message.apiKey, true);
             await config.update("apiUrl", message.apiUrl, true);
             await config.update("apiModel", message.apiModel, true);
+            await config.update("ragPyEnv", message.ragPyEnv, true);
             vscode.window.showInformationMessage(
               "Settings saved successfully!"
             );
@@ -247,6 +261,11 @@ const packageJsonConfig = {
           description:
             "LLM AI model identifier (e.g., anthropic/claude-3.5-sonnet, openai/gpt-4o-2024-08-06)",
         },
+        "promptlyCode.ragPyEnv": {
+          "type": "string",
+          "default": "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ",
+          "description": "If you need to configure rag, please check https://github.com/PromptlyCode/rag-code-sorting-search/"
+        }
       },
     },
     commands: [
