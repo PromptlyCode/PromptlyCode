@@ -377,8 +377,6 @@ async function validateWorkspace(): Promise<string> {
   return workspaceFolders[0].uri.fsPath;
 }
 
-const pyenv = "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ";
-
 async function searchCode(searchTerm: string): Promise<SearchResult> {
   const execAsync = promisify(exec);
 
@@ -402,6 +400,9 @@ async function searchCode(searchTerm: string): Promise<SearchResult> {
       throw new Error("No workspace folder open");
     }
     const path = workspaceFolders[0].uri.fsPath;
+
+    const config = vscode.workspace.getConfiguration("promptlyCode");
+    let pyenv = config.get<string>("ragPyEnv");
 
     const searchCommand = `${pyenv} python rag_search_code.py search "${path}" "${sanitizedQuery}"`;
     console.log(`Executing RAG search command: ${searchCommand}`);

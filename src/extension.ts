@@ -537,8 +537,6 @@ export function activate(context: vscode.ExtensionContext) {
   // rag
   // Create output channel
   // TODO: rust rewrite it
-  const pyenv = "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ";
-
   const outputChannel = vscode.window.createOutputChannel("RAG Search");
 
   // Register build command
@@ -552,6 +550,9 @@ export function activate(context: vscode.ExtensionContext) {
           throw new Error("No workspace folder open");
         }
         const path = workspaceFolders[0].uri.fsPath;
+
+        const config = vscode.workspace.getConfiguration("promptlyCode");
+        let pyenv = config.get<string>("ragPyEnv");
 
         // Show progress indicator
         await vscode.window.withProgress(
@@ -597,6 +598,9 @@ export function activate(context: vscode.ExtensionContext) {
           throw new Error("No workspace folder open");
         }
         const path = workspaceFolders[0].uri.fsPath;
+
+        const config = vscode.workspace.getConfiguration("promptlyCode");
+        let pyenv = config.get<string>("ragPyEnv");
 
         // Get search query from user
         const query = await vscode.window.showInputBox({
