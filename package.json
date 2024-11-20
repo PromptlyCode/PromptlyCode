@@ -88,6 +88,11 @@
           "default": "anthropic/claude-3.5-sonnet",
           "description": "Your PromptlyCode LLM API Model"
         },
+        "promptlyCode.ragPyEnv": {
+          "type": "string",
+          "default": "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ",
+          "description": "If you need to configure rag, please check https://github.com/PromptlyCode/rag-code-sorting-search/"
+        },
         "pythonFunctionSuggestions.enable": {
           "type": "boolean",
           "default": true,
