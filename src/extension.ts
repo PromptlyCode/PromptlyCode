@@ -8,7 +8,7 @@ import { createChatPanel, handleChatMessage } from "./function_calling/tools";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "./config";
-import { ResizableQuickInput } from './poc/cmd_i';
+import { ResizableQuickInput } from "./poc/cmd_i";
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -25,7 +25,8 @@ const DEFAULT_CONFIG: PromptlyCodeConfig = {
   apiKey: "",
   apiUrl: "https://openrouter.ai/api",
   apiModel: "anthropic/claude-3.5-sonnet",
-  ragPyEnv: "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run "
+  ragPyEnv:
+    "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ",
 };
 
 export function getSettingsWebviewContent(
@@ -210,7 +211,7 @@ export async function showSettingsWebview(
     apiKey: config.get("apiKey", DEFAULT_CONFIG.apiKey),
     apiUrl: config.get("apiUrl", DEFAULT_CONFIG.apiUrl),
     apiModel: config.get("apiModel", DEFAULT_CONFIG.apiModel),
-    ragPyEnv: config.get("ragPyEnv", DEFAULT_CONFIG.apiModel)
+    ragPyEnv: config.get("ragPyEnv", DEFAULT_CONFIG.apiModel),
   };
 
   panel.webview.html = getSettingsWebviewContent(currentConfig);
@@ -263,10 +264,12 @@ const packageJsonConfig = {
             "LLM AI model identifier (e.g., anthropic/claude-3.5-sonnet, openai/gpt-4o-2024-08-06)",
         },
         "promptlyCode.ragPyEnv": {
-          "type": "string",
-          "default": "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ",
-          "description": "If you need to configure rag, please check https://github.com/PromptlyCode/rag-code-sorting-search/"
-        }
+          type: "string",
+          default:
+            "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate rag-code-sorting-search && cd /Users/clojure/Desktop/rag-code-sorting-search && PYTHONPATH='.:/Users/clojure/Desktop/rag-code-sorting-search' /Users/clojure/.local/bin/poetry run ",
+          description:
+            "If you need to configure rag, please check https://github.com/PromptlyCode/rag-code-sorting-search/",
+        },
       },
     },
     commands: [
@@ -593,7 +596,6 @@ export function activate(context: vscode.ExtensionContext) {
     "promptlyCode.ragSearchCode",
     async () => {
       try {
-
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
           throw new Error("No workspace folder open");
@@ -645,27 +647,32 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(buildDisposable, searchDisposable);
 
   //
-  let disposable3 = vscode.commands.registerCommand('extension.openChat', async () => {
-    const quickInput = new ResizableQuickInput();
-    
-    const input = await quickInput.show();
-    if (input) {
-        const config = vscode.workspace.getConfiguration('chatExtension');
-        const apiKey = config.get('apiKey') as string;
-        const model = config.get('model') as string;
-        const modelUrl = config.get('modelUrl') as string;
+  let disposable3 = vscode.commands.registerCommand(
+    "extension.openChat",
+    async () => {
+      const quickInput = new ResizableQuickInput();
+
+      const input = await quickInput.show();
+      if (input) {
+        const config = vscode.workspace.getConfiguration("promptlyCode");
+        const apiKey = config.get("apiKey") as string;
+        const model = config.get("apiModel") as string;
+        const modelUrl = config.get("apiUrl") as string;
 
         try {
-            await handleChatMessage(input, apiKey, model, modelUrl);
+          const response = await handleChatMessage(input, apiKey, model, modelUrl);
+          console.log(response);
+          vscode.window.showInformationMessage(response);
         } catch (error) {
-            vscode.window.showErrorMessage(`Error: {error.message}`);
+          vscode.window.showErrorMessage(`Error: {error.message}`);
         }
-    }
-    
-    quickInput.dispose();
-});
+      }
 
-context.subscriptions.push(disposable3);
+      quickInput.dispose();
+    }
+  );
+
+  context.subscriptions.push(disposable3);
   //
 }
 
