@@ -685,10 +685,14 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Construct command based on POC type
       let command = "";
+      const pyenv = "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate ai-automatic-env-build && cd /Users/clojure/Desktop/ai-automatic-env-build && PYTHONPATH='.:/Users/clojure/Desktop/ai-automatic-env-build' /Users/clojure/.local/bin/poetry run ";
+
+      const apiKey = config.get<string>("apiKey");
+
       if (pocType === "poc python") {
-        command = `poetry run python poc_python_autogen.py -r "${inputQuestion}" -w "${currentPwd}"`;
+        command = `${pyenv} poetry run python poc_python_autogen.py -r "${inputQuestion}" -w "${currentPwd}" --api-key "${apiKey}"`;
       } else {
-        command = `poetry run python poc_shell.py "${inputQuestion}" "${currentPwd}"`;
+        command = `${pyenv} poetry run python poc_shell.py "${inputQuestion}" "${currentPwd}"`;
       }
 
       // Create and show output channel
