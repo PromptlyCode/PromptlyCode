@@ -659,12 +659,12 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Get user input for the question
       const inputQuestion = await vscode.window.showInputBox({
-        prompt: "Enter your input question",
-        placeHolder: "Type your question here",
+        prompt: "Input requirements, generate Python prototype for verification and testing",
+        placeHolder: "Type your requirements here",
       });
 
       if (!inputQuestion) {
-        vscode.window.showErrorMessage("No input question provided");
+        vscode.window.showErrorMessage("No input requirements provided");
         return;
       }
 
