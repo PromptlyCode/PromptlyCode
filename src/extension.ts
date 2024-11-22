@@ -685,7 +685,9 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Construct command based on POC type
       let command = "";
-      const pyenv = "source /opt/anaconda3/etc/profile.d/conda.sh &&  conda activate ai-automatic-env-build && cd /Users/clojure/Desktop/ai-automatic-env-build && PYTHONPATH='.:/Users/clojure/Desktop/ai-automatic-env-build' /Users/clojure/.local/bin/poetry run ";
+
+      // TODO: refactor
+      const pyenv = config.get<string>("ragPyEnv")!.replace(/rag-code-sorting-search/g, 'ai-automatic-env-build');
 
       const apiKey = config.get<string>("apiKey");
 
