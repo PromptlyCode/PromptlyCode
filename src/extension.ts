@@ -648,27 +648,69 @@ export function activate(context: vscode.ExtensionContext) {
 
   //
   let disposable3 = vscode.commands.registerCommand(
-    "extension.openChat",
+    "extension.runPOC",
     async () => {
-      const quickInput = new ResizableQuickInput();
-
-      const input = await quickInput.show();
-      if (input) {
-        const config = vscode.workspace.getConfiguration("promptlyCode");
-        const apiKey = config.get("apiKey") as string;
-        const model = config.get("apiModel") as string;
-        const modelUrl = config.get("apiUrl") as string;
-
-        try {
-          const response = await handleChatMessage(input, apiKey, model, modelUrl);
-          console.log(response);
-          vscode.window.showInformationMessage(response);
-        } catch (error) {
-          vscode.window.showErrorMessage(`Error: {error.message}`);
-        }
+      // Get the current workspace folder
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        vscode.window.showErrorMessage("No workspace folder found");
+        return;
       }
 
-      quickInput.dispose();
+      // Get user input for the question
+      const inputQuestion = await vscode.window.showInputBox({
+        prompt: "Enter your input question",
+        placeHolder: "Type your question here",
+      });
+
+      if (!inputQuestion) {
+        vscode.window.showErrorMessage("No input question provided");
+        return;
+      }
+
+      // Show quick pick for POC type
+      const pocType = await vscode.window.showQuickPick(
+        ["poc python", "poc shell"],
+        {
+          placeHolder: "Select POC type",
+        }
+      );
+
+      if (!pocType) {
+        return;
+      }
+
+      // Get current working directory
+      const currentPwd = workspaceFolder.uri.fsPath;
+
+      // Construct command based on POC type
+      let command = "";
+      if (pocType === "poc python") {
+        command = `poetry run python poc_python_autogen.py -r "${inputQuestion}" -w "${currentPwd}"`;
+      } else {
+        command = `poetry run python poc_shell.py "${inputQuestion}" "${currentPwd}"`;
+      }
+
+      // Create and show output channel
+      const outputChannel = vscode.window.createOutputChannel("POC Runner");
+      outputChannel.show();
+
+      // Execute command
+      const terminal = vscode.window.createTerminal("POC Runner");
+      terminal.show();
+      terminal.sendText(command);
+
+      // Execute in background and show output
+      exec(command, { cwd: currentPwd }, (error, stdout, stderr) => {
+        if (error) {
+          outputChannel.appendLine(`Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          outputChannel.appendLine(`stderr: ${stderr}`);
+        }
+        outputChannel.appendLine(stdout);
+      });
     }
   );
 

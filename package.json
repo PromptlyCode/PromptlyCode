@@ -51,13 +51,13 @@
         "title": "PromptlyCode RAG Search: Search Code"
       },
       {
-        "command": "extension.openChat",
+        "command": "extension.runPOC",
         "title": "Open Chat Interface"
       }
     ],
     "keybindings": [
       {
-        "command": "extension.openChat",
+        "command": "extension.runPOC",
         "key": "cmd+i",
         "mac": "cmd+i",
         "when": "editorTextFocus"
