@@ -471,7 +471,7 @@ export function activate(context: vscode.ExtensionContext) {
   // cmd-e
   // Register keyboard shortcut
   context.subscriptions.push(
-    vscode.commands.registerCommand("extension.showGraphVisualization", () => {
+    vscode.commands.registerCommand("promptlyCode.showGraphVisualization", () => {
       if (currentPanel) {
         currentPanel.reveal();
       } else {
@@ -648,7 +648,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   //
   let disposable3 = vscode.commands.registerCommand(
-    "extension.runPOC",
+    "promptlyCode.runPOC",
     async () => {
       // Get the current workspace folder
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];

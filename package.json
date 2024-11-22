@@ -35,7 +35,7 @@
         "title": "Chat PromptlyCode about code"
       },
       {
-        "command": "extension.showGraphVisualization",
+        "command": "promptlyCode.showGraphVisualization",
         "title": "PromptlyCode Show Graph Visualization"
       },
       {
@@ -51,13 +51,13 @@
         "title": "PromptlyCode RAG Search: Search Code"
       },
       {
-        "command": "extension.runPOC",
+        "command": "promptlyCode.runPOC",
         "title": "Open Chat Interface"
       }
     ],
     "keybindings": [
       {
-        "command": "extension.runPOC",
+        "command": "promptlyCode.runPOC",
         "key": "cmd+i",
         "mac": "cmd+i",
         "when": "editorTextFocus"
@@ -74,7 +74,7 @@
         "mac": "cmd+l"
       },
       {
-        "command": "extension.showGraphVisualization",
+        "command": "promptlyCode.showGraphVisualization",
         "key": "ctrl+e",
         "mac": "cmd+e",
         "when": "editorTextFocus"
