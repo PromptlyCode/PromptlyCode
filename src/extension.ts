@@ -670,7 +670,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Show quick pick for POC type
       const pocType = await vscode.window.showQuickPick(
-        ["poc python", "poc shell"],
+        ["poc python", "poc web",  "poc shell"],
         {
           placeHolder: "Select POC type",
         }
@@ -692,7 +692,10 @@ export function activate(context: vscode.ExtensionContext) {
       const apiKey = config.get<string>("apiKey");
 
       if (pocType === "poc python") {
-        command = `${pyenv} poetry run python poc_python_autogen.py -r "${inputQuestion}" -w "${currentPwd}" --api-key "${apiKey}"`;
+        command = `${pyenv} poetry run python poc_python.py -r "${inputQuestion}" -w "${currentPwd}" --api-key "${apiKey}"`;
+      else if pocType === "poc web" {
+        command = `${pyenv} poetry run python poc_web.py -r "${inputQuestion}" -w "${currentPwd}" --api-key "${apiKey}"`;
+      }
       } else {
         command = `${pyenv} poetry run python poc_shell.py "${inputQuestion}" "${currentPwd}"`;
       }
