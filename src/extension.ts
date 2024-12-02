@@ -393,7 +393,7 @@ export function activate(context: vscode.ExtensionContext) {
         currentPanel.reveal(vscode.ViewColumn.Two);
       } else {
         currentPanel = vscode.window.createWebviewPanel(
-          "openaiChat",
+          "PromptlyCodeAIChat",
           "PromptlyCode AI Chat",
           vscode.ViewColumn.Two,
           {
