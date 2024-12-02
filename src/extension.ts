@@ -416,15 +416,14 @@ export function activate(context: vscode.ExtensionContext) {
                   let apiKey = config.get<string>("apiKey");
                   const apiModel = config.get<string>("apiModel");
                   const apiUrl = config.get<string>("apiUrl");
-                  // db
                   // Initialize database
                   const db = await initDatabase(context);
 
                   // Save user message to database
-                  await db.run(
-                    "INSERT INTO chat_history (role, content) VALUES (?, ?)",
-                    ["user", message.text]
-                  );
+                  // await db.run(
+                  //   "INSERT INTO chat_history (role, content) VALUES (?, ?)",
+                  //   ["user", message.text]
+                  // );
                   //
                   const response = await axios.post(
                     `${apiUrl}/v1/chat/completions`,
@@ -452,10 +451,10 @@ export function activate(context: vscode.ExtensionContext) {
                   const aiResponse = response.data.choices[0].message.content;
 
                   // Save AI response to database
-                  await db.run(
-                    "INSERT INTO chat_history (role, content) VALUES (?, ?)",
-                    ["assistant", aiResponse]
-                  );
+                  // await db.run(
+                  //   "INSERT INTO chat_history (role, content) VALUES (?, ?)",
+                  //   ["assistant", aiResponse]
+                  // );
 
                   currentPanel?.webview.postMessage({
                     command: "receiveMessage",
@@ -468,20 +467,20 @@ export function activate(context: vscode.ExtensionContext) {
                   console.error(error);
                 }
               // Add a new case to fetch chat history
-              case "fetchHistory":
-                try {
-                  const db = await initDatabase(context);
-                  const history = await db.all(
-                    "SELECT * FROM chat_history ORDER BY timestamp DESC LIMIT 100"
-                  );
-                  currentPanel?.webview.postMessage({
-                    command: "displayHistory",
-                    history: history,
-                  });
-                } catch (error) {
-                  vscode.window.showErrorMessage("Error fetching chat history");
-                  console.error(error);
-                }
+              // case "fetchHistory":
+              //   try {
+              //     const db = await initDatabase(context);
+              //     const history = await db.all(
+              //       "SELECT * FROM chat_history ORDER BY timestamp DESC LIMIT 100"
+              //     );
+              //     currentPanel?.webview.postMessage({
+              //       command: "displayHistory",
+              //       history: history,
+              //     });
+              //   } catch (error) {
+              //     vscode.window.showErrorMessage("Error fetching chat history");
+              //     console.error(error);
+              //   }
                 break;
             }
           },
