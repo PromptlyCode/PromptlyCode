@@ -64,7 +64,7 @@ export function createChatPanel(
 ) {
   chatPanel = vscode.window.createWebviewPanel(
     "aiChat",
-    "AI Chat",
+    "PromptlyCode AI Chat",
     vscode.ViewColumn.Two,
     {
       enableScripts: true,
@@ -355,10 +355,10 @@ interface SearchResult {
 async function checkCommandExists(command: string): Promise<boolean> {
   const execAsync = promisify(exec);
   try {
-    const checkCommand = process.platform === 'win32' 
+    const checkCommand = process.platform === 'win32'
       ? `where ${command}`  // Windows
       : `which ${command}`; // Unix-like systems
-    
+
     await execAsync(checkCommand);
     return true;
   } catch {
@@ -368,7 +368,7 @@ async function checkCommandExists(command: string): Promise<boolean> {
 
 async function validateWorkspace(): Promise<string> {
   const workspaceFolders = vscode.workspace.workspaceFolders;
-  
+
   if (!workspaceFolders || workspaceFolders.length === 0) {
     vscode.window.showErrorMessage('Please open a folder or workspace before searching');
     throw new Error('No workspace folder found. Please open a folder first.');
@@ -390,10 +390,10 @@ async function searchCode(searchTerm: string): Promise<SearchResult> {
         error: 'Search term cannot be empty'
       };
     }
-    
+
     // Sanitize inputs
     const sanitizedQuery = searchTerm.replace(/"/g, '\\"');
-    
+
     // Get workspace folder path
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {

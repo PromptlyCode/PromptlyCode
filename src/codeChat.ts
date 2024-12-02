@@ -71,7 +71,7 @@ export function getWebviewContent() {
       <div id="chat-container">
         <div id="messages"></div>
 
-        <div id="loading-spinner"> 
+        <div id="loading-spinner">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" class="spinner">
                 <circle cx="25" cy="25" r="20" stroke="var(--vscode-editor-foreground)" stroke-width="5" fill="none" stroke-linecap="round"/>
             </svg>
