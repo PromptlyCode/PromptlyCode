@@ -693,9 +693,8 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (pocType === "poc python") {
         command = `${pyenv} poetry run python poc_python.py -r "${inputQuestion}" -w "${currentPwd}" --api-key "${apiKey}"`;
-      else if pocType === "poc web" {
+      } else if (pocType === "poc web") {
         command = `${pyenv} poetry run python poc_web.py -r "${inputQuestion}" -w "${currentPwd}" --api-key "${apiKey}"`;
-      }
       } else {
         command = `${pyenv} poetry run python poc_shell.py "${inputQuestion}" "${currentPwd}"`;
       }
