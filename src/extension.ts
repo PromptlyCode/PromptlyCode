@@ -9,6 +9,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "./config";
 import { ResizableQuickInput } from "./poc/cmd_i";
+import { initDatabase } from "./database/chat_history";
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -415,6 +416,16 @@ export function activate(context: vscode.ExtensionContext) {
                   let apiKey = config.get<string>("apiKey");
                   const apiModel = config.get<string>("apiModel");
                   const apiUrl = config.get<string>("apiUrl");
+                  // db
+                  // Initialize database
+                  const db = await initDatabase(context);
+
+                  // Save user message to database
+                  await db.run(
+                    "INSERT INTO chat_history (role, content) VALUES (?, ?)",
+                    ["user", message.text]
+                  );
+                  //
                   const response = await axios.post(
                     `${apiUrl}/v1/chat/completions`,
                     {
@@ -438,14 +449,37 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                   );
 
+                  const aiResponse = response.data.choices[0].message.content;
+
+                  // Save AI response to database
+                  await db.run(
+                    "INSERT INTO chat_history (role, content) VALUES (?, ?)",
+                    ["assistant", aiResponse]
+                  );
+
                   currentPanel?.webview.postMessage({
                     command: "receiveMessage",
-                    text: response.data.choices[0].message.content,
+                    text: aiResponse,
                   });
                 } catch (error) {
                   vscode.window.showErrorMessage(
                     "Error connecting to AI service"
                   );
+                  console.error(error);
+                }
+              // Add a new case to fetch chat history
+              case "fetchHistory":
+                try {
+                  const db = await initDatabase(context);
+                  const history = await db.all(
+                    "SELECT * FROM chat_history ORDER BY timestamp DESC LIMIT 100"
+                  );
+                  currentPanel?.webview.postMessage({
+                    command: "displayHistory",
+                    history: history,
+                  });
+                } catch (error) {
+                  vscode.window.showErrorMessage("Error fetching chat history");
                   console.error(error);
                 }
                 break;
@@ -471,45 +505,48 @@ export function activate(context: vscode.ExtensionContext) {
   // cmd-e
   // Register keyboard shortcut
   context.subscriptions.push(
-    vscode.commands.registerCommand("promptlyCode.showGraphVisualization", () => {
-      if (currentPanel) {
-        currentPanel.reveal();
-      } else {
-        currentPanel = vscode.window.createWebviewPanel(
-          "graphVisualization",
-          "Graph Visualization",
-          vscode.ViewColumn.Two,
-          {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-          }
-        );
-
-        // Handle panel disposal
-        currentPanel.onDidDispose(
-          () => {
-            currentPanel = undefined;
-          },
-          null,
-          context.subscriptions
-        );
-
-        // Handle messages from webview
-        currentPanel.webview.onDidReceiveMessage(
-          (message) => {
-            switch (message.command) {
-              case "refresh":
-                updateGraphVisualization(currentPanel, execAsync);
-                break;
+    vscode.commands.registerCommand(
+      "promptlyCode.showGraphVisualization",
+      () => {
+        if (currentPanel) {
+          currentPanel.reveal();
+        } else {
+          currentPanel = vscode.window.createWebviewPanel(
+            "graphVisualization",
+            "Graph Visualization",
+            vscode.ViewColumn.Two,
+            {
+              enableScripts: true,
+              retainContextWhenHidden: true,
             }
-          },
-          undefined,
-          context.subscriptions
-        );
+          );
 
-        updateGraphVisualization(currentPanel, execAsync);
+          // Handle panel disposal
+          currentPanel.onDidDispose(
+            () => {
+              currentPanel = undefined;
+            },
+            null,
+            context.subscriptions
+          );
+
+          // Handle messages from webview
+          currentPanel.webview.onDidReceiveMessage(
+            (message) => {
+              switch (message.command) {
+                case "refresh":
+                  updateGraphVisualization(currentPanel, execAsync);
+                  break;
+              }
+            },
+            undefined,
+            context.subscriptions
+          );
+
+          updateGraphVisualization(currentPanel, execAsync);
+        }
       }
-    })
+    )
   );
 
   //
@@ -659,7 +696,8 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Get user input for the question
       const inputQuestion = await vscode.window.showInputBox({
-        prompt: "Input requirements, generate Python prototype for verification and testing",
+        prompt:
+          "Input requirements, generate Python prototype for verification and testing",
         placeHolder: "Type your requirements here",
       });
 
@@ -670,7 +708,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Show quick pick for POC type
       const pocType = await vscode.window.showQuickPick(
-        ["poc python", "poc web",  "poc shell"],
+        ["poc python", "poc web", "poc shell"],
         {
           placeHolder: "Select POC type",
         }
@@ -687,7 +725,9 @@ export function activate(context: vscode.ExtensionContext) {
       let command = "";
 
       // TODO: refactor
-      const pyenv = config.get<string>("ragPyEnv")!.replace(/rag-code-sorting-search/g, 'ai-automatic-env-build');
+      const pyenv = config
+        .get<string>("ragPyEnv")!
+        .replace(/rag-code-sorting-search/g, "ai-automatic-env-build");
 
       const apiKey = config.get<string>("apiKey");
 
