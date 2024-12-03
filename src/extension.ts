@@ -9,6 +9,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "./config";
 import { ResizableQuickInput } from "./poc/cmd_i";
+import { ChatHistoryManager } from './db';
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -386,9 +387,12 @@ export function activate(context: vscode.ExtensionContext) {
   //------ cmd-l -------------
   let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
+  const chatHistoryManager = new ChatHistoryManager(context);
+
   let disposable2 = vscode.commands.registerCommand(
     "promptlyCode.startChat",
     () => {
+      const currentChatSessionId = `session_${Date.now()}`;
       if (currentPanel) {
         currentPanel.reveal(vscode.ViewColumn.Two);
       } else {
@@ -437,6 +441,13 @@ export function activate(context: vscode.ExtensionContext) {
                       },
                     }
                   );
+
+                  chatHistoryManager.saveChatMessage({
+                    role: 'assistant',
+                    content: response.data.choices[0].message.content,
+                    chatSessionId: currentChatSessionId,
+                    timestamp: Date.now()
+                  });
 
                   currentPanel?.webview.postMessage({
                     command: "receiveMessage",
