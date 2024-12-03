@@ -1,17 +1,14 @@
 import * as vscode from 'vscode';
 import * as sqlite3 from 'sqlite3';
-import * as path from 'path';
 
 // Database helper class to manage chat history storage
 export class ChatHistoryDatabase {
   private db: sqlite3.Database;
 
-  constructor(context: vscode.ExtensionContext) {
-    const dbPath = path.join(context.extensionPath, 'chat_history.sqlite');
-    
-    this.db = new sqlite3.Database(dbPath, (err) => {
+  constructor() {
+    this.db = new sqlite3.Database(':memory:', (err) => {
       if (err) {
-        vscode.window.showErrorMessage(`Error opening database: ${err.message}`);
+        vscode.window.showErrorMessage(`Error initializing in-memory database: ${err.message}`);
       } else {
         this.initializeDatabase();
       }
@@ -59,7 +56,7 @@ export class ChatHistoryDatabase {
             vscode.window.showErrorMessage(`Error retrieving chat history: ${err.message}`);
             reject(err);
           } else {
-            console.log("TODO----");
+            console.log("---TODO---");
             //resolve(rows);
           }
         }
@@ -69,11 +66,6 @@ export class ChatHistoryDatabase {
 
   // Close the database connection
   public close() {
-    this.db.close((err) => {
-      if (err) {
-        vscode.window.showErrorMessage(`Error closing database: ${err.message}`);
-      }
-    });
+    // No-op for in-memory database
   }
 }
-

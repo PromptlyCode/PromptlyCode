@@ -387,7 +387,7 @@ export function activate(context: vscode.ExtensionContext) {
   //------ cmd-l -------------
   let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
-  const chatHistoryDb = new ChatHistoryDatabase(context);
+  const chatHistoryDb = new ChatHistoryDatabase();
 
   let disposable2 = vscode.commands.registerCommand(
     "promptlyCode.startChat",
