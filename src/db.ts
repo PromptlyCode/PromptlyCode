@@ -2,171 +2,78 @@ import * as vscode from 'vscode';
 import * as sqlite3 from 'sqlite3';
 import * as path from 'path';
 
-// Types
-interface ChatEntry {
-    id: number;
-    timestamp: string;
-    content: string;
-    filePath: string;
-}
+// Database helper class to manage chat history storage
+export class ChatHistoryDatabase {
+  private db: sqlite3.Database;
 
-class ChatHistoryDB {
-    private db: sqlite3.Database;
+  constructor(context: vscode.ExtensionContext) {
+    const dbPath = path.join(context.extensionPath, 'chat_history.sqlite');
     
-    constructor(dbPath: string) {
-        this.db = new sqlite3.Database(dbPath, (err) => {
-            if (err) {
-                console.error('Error opening database:', err);
-                return;
-            }
-        });
-        this.initTable();
-    }
+    this.db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        vscode.window.showErrorMessage(`Error opening database: ${err.message}`);
+      } else {
+        this.initializeDatabase();
+      }
+    });
+  }
 
-    private initTable(): void {
-        const sql = `
-            CREATE TABLE IF NOT EXISTS chat_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                content TEXT NOT NULL,
-                file_path TEXT NOT NULL
-            )`;
-        
-        this.db.run(sql, (err) => {
-            if (err) {
-                console.error('Error creating table:', err);
-            }
-        });
-    }
+  private initializeDatabase() {
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS chat_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        session_id TEXT,
+        role TEXT,
+        message TEXT
+      )
+    `);
+  }
 
-    public async saveChat(content: string, filePath: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const sql = 'INSERT INTO chat_history (content, file_path) VALUES (?, ?)';
-            this.db.run(sql, [content, filePath], (err) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve();
-            });
-        });
-    }
-
-    public async getChatHistory(): Promise<ChatEntry[]> {
-        return new Promise((resolve, reject) => {
-            const sql = 'SELECT * FROM chat_history ORDER BY timestamp DESC';
-            this.db.all(sql, [], (err, rows: ChatEntry[]) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(rows);
-            });
-        });
-    }
-
-    public close(): void {
-        this.db.close();
-    }
-}
-
-export class ChatHistoryExtension {
-    private chatDB: ChatHistoryDB;
-
-    constructor(context: vscode.ExtensionContext) {
-        const dbPath = path.join(context.extensionPath, 'chat-history.db');
-        this.chatDB = new ChatHistoryDB(dbPath);
-        
-        // Register commands
-        context.subscriptions.push(
-            vscode.commands.registerCommand('extension.saveChat', this.saveChat.bind(this)),
-            vscode.commands.registerCommand('extension.viewChatHistory', this.viewChatHistory.bind(this))
-        );
-    }
-
-    private async saveChat(): Promise<void> {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage('No active editor found');
-            return;
+  // Save a message to the database
+  public saveMessage(sessionId: string, role: 'user' | 'assistant', message: string) {
+    return new Promise<void>((resolve, reject) => {
+      this.db.run(
+        'INSERT INTO chat_history (session_id, role, message) VALUES (?, ?, ?)', 
+        [sessionId, role, message], 
+        (err) => {
+          if (err) {
+            vscode.window.showErrorMessage(`Error saving message: ${err.message}`);
+            reject(err);
+          } else {
+            resolve();
+          }
         }
+      );
+    });
+  }
 
-        try {
-            const content = editor.document.getText();
-            const filePath = editor.document.uri.fsPath;
-            await this.chatDB.saveChat(content, filePath);
-            vscode.window.showInformationMessage('Chat history saved successfully');
-        } catch (err) {
-            vscode.window.showErrorMessage(`Failed to save chat history: ${err}`);
+  // Retrieve chat history for a specific session
+  public getChatHistory(sessionId: string): Promise<Array<{role: string, message: string, timestamp: string}>> {
+    return new Promise((resolve, reject) => {
+      this.db.all(
+        'SELECT role, message, timestamp FROM chat_history WHERE session_id = ? ORDER BY timestamp', 
+        [sessionId], 
+        (err, rows) => {
+          if (err) {
+            vscode.window.showErrorMessage(`Error retrieving chat history: ${err.message}`);
+            reject(err);
+          } else {
+            console.log("TODO----");
+            //resolve(rows);
+          }
         }
-    }
+      );
+    });
+  }
 
-    private async viewChatHistory(): Promise<void> {
-        try {
-            const history = await this.chatDB.getChatHistory();
-            const panel = vscode.window.createWebviewPanel(
-                'chatHistory',
-                'Chat History',
-                vscode.ViewColumn.One,
-                {}
-            );
-
-            panel.webview.html = this.getWebviewContent(history);
-        } catch (err) {
-            vscode.window.showErrorMessage(`Failed to load chat history: ${err}`);
-        }
-    }
-
-    private getWebviewContent(history: ChatEntry[]): string {
-        return `
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Chat History</title>
-                <style>
-                    body { padding: 20px; }
-                    .chat-entry {
-                        margin-bottom: 20px;
-                        padding: 10px;
-                        border: 1px solid #ccc;
-                        border-radius: 4px;
-                    }
-                    .timestamp {
-                        color: #666;
-                        font-size: 0.9em;
-                    }
-                    .file-path {
-                        color: #0066cc;
-                        font-size: 0.9em;
-                    }
-                </style>
-            </head>
-            <body>
-                <h1>Chat History</h1>
-                ${history.map(entry => `
-                    <div class="chat-entry">
-                        <div class="timestamp">${entry.timestamp}</div>
-                        <div class="file-path">${entry.filePath}</div>
-                        <pre>${entry.content}</pre>
-                    </div>
-                `).join('')}
-            </body>
-            </html>
-        `;
-    }
-
-    public dispose(): void {
-        this.chatDB.close();
-    }
+  // Close the database connection
+  public close() {
+    this.db.close((err) => {
+      if (err) {
+        vscode.window.showErrorMessage(`Error closing database: ${err.message}`);
+      }
+    });
+  }
 }
 
-// Extension activation and deactivation
-export function activate(context: vscode.ExtensionContext): void {
-    new ChatHistoryExtension(context);
-}
-
-export function deactivate(): void {
-    // Cleanup will be handled by dispose()
-}

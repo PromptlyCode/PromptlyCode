@@ -9,6 +9,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "./config";
 import { ResizableQuickInput } from "./poc/cmd_i";
+import { ChatHistoryDatabase } from "./db";
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -386,9 +387,14 @@ export function activate(context: vscode.ExtensionContext) {
   //------ cmd-l -------------
   let currentPanel: vscode.WebviewPanel | undefined = undefined;
 
+  const chatHistoryDb = new ChatHistoryDatabase(context);
+
   let disposable2 = vscode.commands.registerCommand(
     "promptlyCode.startChat",
     () => {
+      // Generate a unique session ID for each chat
+      const sessionId = `session_${Date.now()}`;
+
       if (currentPanel) {
         currentPanel.reveal(vscode.ViewColumn.Two);
       } else {
@@ -410,8 +416,10 @@ export function activate(context: vscode.ExtensionContext) {
             switch (message.command) {
               case "sendMessage":
                 try {
-                  const config =
-                    vscode.workspace.getConfiguration("promptlyCode");
+                  // Save user message to database
+                  await chatHistoryDb.saveMessage(sessionId, 'user', message.text);
+
+                  const config = vscode.workspace.getConfiguration("promptlyCode");
                   let apiKey = config.get<string>("apiKey");
                   const apiModel = config.get<string>("apiModel");
                   const apiUrl = config.get<string>("apiUrl");
@@ -438,9 +446,14 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                   );
 
+                  const assistantMessage = response.data.choices[0].message.content;
+
+                  // Save assistant message to database
+                  await chatHistoryDb.saveMessage(sessionId, 'assistant', assistantMessage);
+
                   currentPanel?.webview.postMessage({
                     command: "receiveMessage",
-                    text: response.data.choices[0].message.content,
+                    text: assistantMessage,
                   });
                 } catch (error) {
                   vscode.window.showErrorMessage(
@@ -465,6 +478,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   );
+
 
   context.subscriptions.push(disposable2);
 

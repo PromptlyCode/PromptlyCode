@@ -138,6 +138,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@types/sqlite3": "^3.1.11",
     "axios": "^1.7.7",
     "lodash": "^4.17.21",
     "sqlite3": "^5.1.7"
