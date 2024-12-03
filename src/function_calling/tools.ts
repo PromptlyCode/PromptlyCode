@@ -236,7 +236,7 @@ export async function handleChatMessage(
       // const data = await response.json();
       // const assistantMessage = data.choices[0].message;
       const data = (await response.json()) as ChatAPIResponse;
-      console.log(data);
+      console.log(`=====AI response:====${data}`);
       const assistantMessage = data.choices[0].message;
 
       messages.push(assistantMessage);

@@ -408,6 +408,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         currentPanel.webview.html = getWebviewContent();
 
+
         // Handle messages from the webview
         currentPanel.webview.onDidReceiveMessage(
           async (message) => {
@@ -441,6 +442,7 @@ export function activate(context: vscode.ExtensionContext) {
                       },
                     }
                   );
+
                   console.log(`chatHistoryManager.saveChatMessage ----- ${currentChatSessionId}`);
 
                   chatHistoryManager.saveChatMessage({
