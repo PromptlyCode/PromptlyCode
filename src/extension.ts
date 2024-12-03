@@ -441,6 +441,7 @@ export function activate(context: vscode.ExtensionContext) {
                       },
                     }
                   );
+                  console.log(`chatHistoryManager.saveChatMessage ----- ${currentChatSessionId}`);
 
                   chatHistoryManager.saveChatMessage({
                     role: 'assistant',

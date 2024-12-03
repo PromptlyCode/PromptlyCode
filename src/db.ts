@@ -32,7 +32,7 @@ export class ChatHistoryManager {
     message.chatSessionId = message.chatSessionId || this.generateChatSessionId();
 
     const filePath = this.getSessionFilePath(message.chatSessionId);
-    
+    console.log(`${message}---filePath:---${filePath}`);
     try {
       let messages: ChatMessage[] = [];
       
