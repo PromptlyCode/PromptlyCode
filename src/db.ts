@@ -16,6 +16,8 @@ export class ChatHistoryManager {
     // Create a directory for storing chat histories
     this.storageDir = path.join(context.extensionPath, 'chat-histories');
     
+    console.log(`----------${context.extensionPath}`);
+
     // Ensure directory exists
     if (!fs.existsSync(this.storageDir)) {
       fs.mkdirSync(this.storageDir, { recursive: true });

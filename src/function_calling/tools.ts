@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { systemDefaultPrompt } from "../config";
 import { join } from 'path';
 import { escapeRegExp } from 'lodash';
+import { ChatHistoryManager } from '../db';
 
 // Webview panel for chat
 // let chatPanel: vscode.WebviewPanel | undefined = undefined;
@@ -71,13 +72,15 @@ export function createChatPanel(
       retainContextWhenHidden: true,
     }
   );
+  const currentChatSessionId = `session_${Date.now()}`;
+  const chatHistoryManager = new ChatHistoryManager(context);
 
   // Handle messages from the webview
   chatPanel.webview.onDidReceiveMessage(
     async (message: ChatDataMessage) => { // Explicitly typed parameter
       switch (message.command) {
         case "sendMessage":
-          const response = await handleChatMessage(message.text, apiKey, model, modelUrl);
+          const response = await handleChatMessage(message.text, apiKey, model, modelUrl, currentChatSessionId, chatHistoryManager);
           // Send response back to webview
           chatPanel?.webview.postMessage({
             command: "response",
@@ -106,7 +109,9 @@ export async function handleChatMessage(
   message: string,
   apiKey: string,
   model: string,
-  modelUrl: string
+  modelUrl: string,
+  currentChatSessionId: string,
+  chatHistoryManager: ChatHistoryManager
 ): Promise<any> {
   const headers = {
     Authorization: `Bearer ${apiKey}`,
@@ -238,6 +243,13 @@ export async function handleChatMessage(
       const data = (await response.json()) as ChatAPIResponse;
       console.log(`=====AI response:====${data}`);
       const assistantMessage = data.choices[0].message;
+
+      chatHistoryManager.saveChatMessage({
+        role: 'assistant',
+        content: `${assistantMessage}`,
+        chatSessionId: currentChatSessionId,
+        timestamp: Date.now()
+      });
 
       messages.push(assistantMessage);
 
