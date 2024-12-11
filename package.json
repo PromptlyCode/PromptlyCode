@@ -53,9 +53,22 @@
       {
         "command": "promptlyCode.runPOC",
         "title": "Open Chat Interface"
-      }
+      },
+      {
+        "command": "aiChat.openChatWindow",
+        "title": "Open AI Chat"
+    },
+    {
+        "command": "aiChat.openChatWindowShortcut",
+        "title": "Open AI Chat Shortcut"
+    }
     ],
     "keybindings": [
+      {
+        "command": "aiChat.openChatWindowShortcut",
+        "key": "ctrl+y",
+        "mac": "cmd+y"
+    },
       {
         "command": "promptlyCode.runPOC",
         "key": "cmd+i",

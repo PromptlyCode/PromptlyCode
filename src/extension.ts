@@ -9,6 +9,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { systemDefaultPrompt } from "./config";
 import { ResizableQuickInput } from "./poc/cmd_i";
+import { ChatView } from './chatView';
 
 const execAsync = promisify(exec);
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -726,6 +727,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable3);
   //
+
+  const chatView = new ChatView(context);
+
+  // Add a keybinding for Ctrl+Y to open the chat view
+  context.subscriptions.push(
+      vscode.commands.registerCommand('aiChat.openChatWindowShortcut', () => {
+          vscode.commands.executeCommand('aiChat.openChatWindow');
+      })
+  );
+  
 }
 
 function extractCodeFromResponse(response: string): string {
